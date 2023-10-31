@@ -55,7 +55,13 @@ class Lexer:
         elif self.currentChar == "+":
             token = Token(self.currentChar, TokenType.SUM)
         elif self.currentChar.isdigit():
-            token = Token(self.currentChar, TokenType.NUMBER)
+            initialPosition = self.currentPosition
+            
+            while self.peek() != "\0" and self.peek().isdigit():
+                self.nextChar()
+            
+            lexeme = self.source[initialPosition : self.currentPosition + 1]
+            token = Token(lexeme, TokenType.NUMBER)
         else:
             self.abort("Unknown character '" + self.currentChar + "'")
 

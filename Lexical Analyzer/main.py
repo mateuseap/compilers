@@ -15,7 +15,7 @@ def main():
     # simple_source = "2+3+4+5+6"
     # simple_lexer(simple_source)
 
-    source = "234+ 3+ 4+ 5+ 6 "
+    source = "234+ 3+ 4+ 5 + 6 "
 
     lexer = Lexer(source)
     token = lexer.getToken()

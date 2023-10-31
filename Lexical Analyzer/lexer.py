@@ -34,7 +34,7 @@ class Lexer:
 
     # Skips whitespaces (spaces, tabs, newlines or what you define as whitespace)
     def skipWhitespace(self):
-        if self.currentChar in " \t\n":
+        while self.currentChar in " \t\n":
             self.nextChar()
 
     # Skips comments

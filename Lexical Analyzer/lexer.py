@@ -82,22 +82,22 @@ class Lexer:
                 token = Token("!", TokenType.NOT)
         elif self.currentChar.isdigit():
             initialPosition = self.currentPosition
-            
+
             while self.peek() != "\0" and self.peek().isdigit():
                 self.nextChar()
-            
+
             lexeme = self.source[initialPosition : self.currentPosition + 1]
             token = Token(lexeme, TokenType.NUMBER)
         elif self.currentChar.isalpha():
             initialPosition = self.currentPosition
-            
+
             while self.peek() != "\0" and self.peek().isalnum():
                 self.nextChar()
-            
+
             lexeme = self.source[initialPosition : self.currentPosition + 1]
-            
+
             type = Token.check_reserved_keywords(lexeme)
-            
+
             if type == None:
                 token = Token(lexeme, TokenType.IDENTIFIER)
             else:
@@ -120,6 +120,7 @@ class Token:
             if type.name == lexeme and type.value >= 100 and type.value < 200:
                 return type
 
+
 class TokenType(enum.Enum):
     EOF = -1
     NUMBER = 1
@@ -131,7 +132,7 @@ class TokenType(enum.Enum):
     PRINT = 103
     ENDIF = 104
 
-    # Operators    
+    # Operators
     EQUAL = 202
     SUM = 203
     SUBTRACTION = 204

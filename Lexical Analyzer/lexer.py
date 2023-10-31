@@ -52,8 +52,34 @@ class Lexer:
 
         if self.currentChar == "\0":
             token = Token("", TokenType.EOF)
+        elif self.currentChar == "=":
+            token = Token("=", TokenType.EQUAL)
         elif self.currentChar == "+":
             token = Token(self.currentChar, TokenType.SUM)
+        elif self.currentChar == "-":
+            token = Token(self.currentChar, TokenType.SUBTRACTION)
+        elif self.currentChar == "*":
+            token = Token(self.currentChar, TokenType.MULTIPLICATION)
+        elif self.currentChar == "/":
+            token = Token(self.currentChar, TokenType.DIVISION)
+        elif self.currentChar == ">":
+            if self.peek() == "=":
+                self.nextChar()
+                token = Token(">=", TokenType.GREATER_THAN_OR_EQUAL)
+            else:
+                token = Token(">", TokenType.GREATER_THAN)
+        elif self.currentChar == "<":
+            if self.peek() == "=":
+                self.nextChar()
+                token = Token("<=", TokenType.LESS_THAN_OR_EQUAL)
+            else:
+                token = Token("<", TokenType.LESS_THAN)
+        elif self.currentChar == "!":
+            if self.peek() == "=":
+                self.nextChar()
+                token = Token("!=", TokenType.NOT_EQUAL)
+            else:
+                token = Token("!", TokenType.NOT)
         elif self.currentChar.isdigit():
             initialPosition = self.currentPosition
             
@@ -62,6 +88,20 @@ class Lexer:
             
             lexeme = self.source[initialPosition : self.currentPosition + 1]
             token = Token(lexeme, TokenType.NUMBER)
+        elif self.currentChar.isalpha():
+            initialPosition = self.currentPosition
+            
+            while self.peek() != "\0" and self.peek().isalnum():
+                self.nextChar()
+            
+            lexeme = self.source[initialPosition : self.currentPosition + 1]
+            
+            type = Token.check_reserved_keywords(lexeme)
+            
+            if type == None:
+                token = Token(lexeme, TokenType.IDENTIFIER)
+            else:
+                token = Token(lexeme, type)
         else:
             self.abort("Unknown character '" + self.currentChar + "'")
 
@@ -75,8 +115,31 @@ class Token:
         self.lexeme = lexeme
         self.type = type
 
+    def check_reserved_keywords(lexeme):
+        for type in TokenType:
+            if type.name == lexeme and type.value >= 100 and type.value < 200:
+                return type
 
 class TokenType(enum.Enum):
     EOF = -1
     NUMBER = 1
-    SUM = 202
+    IDENTIFIER = 2
+
+    # Reserved keywords
+    IF = 101
+    THEN = 102
+    PRINT = 103
+    ENDIF = 104
+
+    # Operators    
+    EQUAL = 202
+    SUM = 203
+    SUBTRACTION = 204
+    MULTIPLICATION = 205
+    DIVISION = 206
+    GREATER_THAN = 207
+    GREATER_THAN_OR_EQUAL = 208
+    LESS_THAN = 209
+    LESS_THAN_OR_EQUAL = 210
+    NOT = 211
+    NOT_EQUAL = 212

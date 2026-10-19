@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Featherweight Java</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   Design tokens. Cores oficiais do Manual de Identidade Visual
+   CIn-UFPE (ago. 2020): vermelho #DB1E2F (primária), vermelho
+   escuro #AF0421, preto #231F20, cinza claro #E0E1E0.
+   Tipografia institucional é Proxima Nova (licenciada); Figtree
+   é usada como substituta aberta de mesmo desenho geométrico.
+   ============================================================ */
+:root {
+  /* colors */
+  --cin-red: #DB1E2F;
+  --cin-red-dark: #AF0421;
+  --cin-black: #231F20;
+  --cin-gray: #E0E1E0;
+  --paper: #FFFFFF;
+  --paper-2: #F3F3F2;
+  --ink: var(--cin-black);
+  --ink-2: #5B5657;
+  --ink-3: #8C8788;
+  --line: var(--cin-gray);
+  --hl-now: rgba(219, 30, 47, .10);
+  --red-tint: #FBEDEE;
+  --hl-done: rgba(35, 31, 32, .06);
+  --code-bg: #FAFAF9;
+
+  /* typography */
+  --font-sans: "Figtree", "Proxima Nova", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --fs-display: 112px;
+  --fs-h1: 64px;
+  --fs-h2: 40px;
+  --fs-lead: 30px;
+  --fs-body: 25px;
+  --fs-small: 19px;
+  --fs-code: 21px;
+  --lh-tight: 1.04;
+  --lh-body: 1.42;
+
+  /* spacing (8px grid) */
+  --sp-1: 8px; --sp-2: 16px; --sp-3: 24px; --sp-4: 32px;
+  --sp-6: 48px; --sp-8: 64px; --sp-10: 80px; --sp-12: 96px;
+
+  /* radius: código e painéis têm canto; estrutura é reta */
+  --r-0: 0; --r-1: 4px; --r-2: 10px;
+
+  /* motion */
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-in-out: cubic-bezier(.65, 0, .35, 1);
+  --dur-1: 160ms; --dur-2: 320ms; --dur-3: 560ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-1: 0ms; --dur-2: 0ms; --dur-3: 0ms; }
+}
+
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+body {
+  background: var(--cin-black);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- stage 16:9, escalado para qualquer tela ---------- */
+.viewport { position: fixed; inset: 0; }
+.deck {
+  position: absolute; left: 50%; top: 50%; width: 1600px; height: 900px;
+  transform: translate(-50%, -50%) scale(var(--scale, 1)); transform-origin: center;
+  background: var(--paper);
+  overflow: hidden;
+}
+.slide {
+  position: absolute; inset: 0;
+  padding: var(--sp-10) var(--sp-12) var(--sp-12);
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden;
+  transform: translateX(24px);
+  transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), visibility 0s linear var(--dur-2);
+}
+.slide.active { opacity: 1; visibility: visible; transform: none; transition-delay: 0s; }
+.slide.past { transform: translateX(-24px); }
+
+/* faixa vermelha à esquerda: assinatura visual recorrente */
+.slide::before {
+  content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 8px;
+  background: var(--cin-red);
+}
+.slide.inverse { background: var(--cin-black); color: #fff; }
+.slide.inverse::before { background: var(--cin-red); }
+.slide.dark { background: var(--cin-black); color: #fff; }
+
+/* ---------- tipografia ---------- */
+h1 { font-size: var(--fs-h1); line-height: var(--lh-tight); font-weight: 800; letter-spacing: -.02em; max-width: 22ch; }
+h2 { font-size: var(--fs-h2); line-height: 1.12; font-weight: 700; letter-spacing: -.01em; }
+.display { font-size: var(--fs-display); line-height: .98; font-weight: 800; letter-spacing: -.035em; }
+.lead { font-size: var(--fs-lead); line-height: 1.34; color: var(--ink-2); max-width: 46ch; }
+.inverse .lead, .dark .lead { color: rgba(255,255,255,.86); }
+p, li { font-size: var(--fs-body); line-height: var(--lh-body); }
+.small { font-size: var(--fs-small); color: var(--ink-3); }
+.inverse .small, .dark .small { color: rgba(255,255,255,.7); }
+code, pre, .mono, .callstack, .ast, .grammar, .term { font-family: var(--font-mono); font-variant-ligatures: none; }
+p code, li code, td code { font-size: .86em; background: var(--paper-2); padding: 1px 6px; border-radius: var(--r-1); }
+.inverse p code, .dark p code, .dark li code { background: rgba(255,255,255,.12); }
+strong { font-weight: 700; }
+.red { color: var(--cin-red); }
+
+.head { margin-bottom: var(--sp-6); }
+.head .kicker { font-size: var(--fs-small); color: var(--cin-red); font-weight: 600; margin-bottom: var(--sp-2); }
+.inverse .head .kicker { color: #FF6B78; }
+
+/* ---------- layout helpers ---------- */
+.grow { flex: 1; min-height: 0; }
+.cols { display: grid; gap: var(--sp-8); grid-template-columns: minmax(0,1fr) minmax(0,1fr); align-items: start; }
+.cols.w-60 { grid-template-columns: minmax(0,1.4fr) minmax(0,1fr); }
+.cols.w-40 { grid-template-columns: minmax(0,1fr) minmax(0,1.4fr); }
+.stack > * + * { margin-top: var(--sp-3); }
+ul.clean { list-style: none; padding: 0; }
+ul.clean li { padding-left: 28px; position: relative; }
+ul.clean li + li { margin-top: var(--sp-2); }
+ul.clean li::before { content: ""; position: absolute; left: 0; top: .62em; width: 12px; height: 3px; background: var(--cin-red); }
+.inverse ul.clean li::before { background: var(--cin-red); }
+
+/* ---------- code ---------- */
+pre.code {
+  background: var(--code-bg); border: 1px solid var(--line); border-radius: var(--r-2);
+  padding: var(--sp-3) var(--sp-4); font-size: var(--fs-code); line-height: 1.5;
+  white-space: pre; overflow: hidden; color: var(--ink);
+}
+pre.code.sm { font-size: 18px; line-height: 1.45; }
+pre.code.xs { font-size: 16px; line-height: 1.4; }
+.dark pre.code { background: #2E2A2B; border-color: #3B3637; color: #F2F2F2; }
+.k { color: var(--cin-red-dark); font-weight: 600; }   /* keyword */
+.t { color: #1F5FA8; }                                  /* type */
+.s { color: #2F7A3E; }                                  /* string */
+.c { color: var(--ink-3); font-style: italic; }         /* comment */
+.n { color: #8A4B00; }                                  /* number */
+.add { background: rgba(219,30,47,.09); box-shadow: inset 4px 0 0 var(--cin-red); display: inline-block; width: 100%; }
+.dark .k { color: #FF6B78; } .dark .t { color: #8CC4FF; } .dark .s { color: #9BDB9F; } .dark .c { color: #A59FA0; } .dark .n { color: #FFC07A; }
+
+/* ---------- pipeline ---------- */
+.pipeline { display: flex; align-items: stretch; gap: 0; margin-top: var(--sp-4); }
+.stage {
+  flex: 1; border: 2px solid var(--ink); padding: var(--sp-3);
+  position: relative; background: var(--paper);
+  transition: opacity var(--dur-2), background var(--dur-2), color var(--dur-2), border-color var(--dur-2);
+}
+.stage + .stage { border-left: none; }
+.stage h3 { font-size: 28px; font-weight: 700; }
+.stage p { font-size: var(--fs-small); color: var(--ink-2); margin-top: 6px; line-height: 1.35; }
+.stage .file { font-family: var(--font-mono); font-size: 15px; color: var(--ink-3); margin-top: var(--sp-2); }
+.stage.focus { background: var(--red-tint); color: var(--ink); border-color: var(--cin-red); box-shadow: inset 0 6px 0 var(--cin-red); }
+.stage.focus p, .stage.focus .file { color: var(--ink-2); }
+.stage.dim { opacity: .32; }
+.pipeline.flow .stage::after {
+  content: ""; position: absolute; right: -11px; top: 50%; width: 20px; height: 20px;
+  background: inherit; border-top: 2px solid; border-right: 2px solid; border-color: inherit;
+  transform: translateY(-50%) rotate(45deg); z-index: 2;
+}
+.pipeline.flow .stage:last-child::after { display: none; }
+
+/* ---------- steps (fragmentos) ---------- */
+[data-at] { transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out); }
+[data-at]:not(.shown) { opacity: 0; transform: translateY(8px); }
+.only { display: none; }
+.only.on { display: block; animation: fadein var(--dur-2) var(--ease-out); }
+@keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+/* ---------- parser tracer ---------- */
+.tracer { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,.95fr) minmax(0,1.2fr); gap: var(--sp-4); flex: 1; min-height: 0; }
+.tracer .pane { display: flex; flex-direction: column; min-height: 0; }
+.pane-title { font-size: var(--fs-small); font-weight: 700; color: var(--ink-2); margin-bottom: var(--sp-2); display: flex; justify-content: space-between; }
+.pane-title .mono { font-weight: 400; color: var(--ink-3); font-size: 16px; }
+.tracer pre.code { flex: 1; font-size: 20px; }
+.seg { border-radius: 3px; transition: background var(--dur-2), color var(--dur-2), box-shadow var(--dur-2); }
+.seg.done { background: var(--hl-done); color: var(--ink-3); }
+.seg.done .k, .seg.done .t, .seg.done .n, .seg.done .s { color: inherit; }
+.seg.now { background: var(--hl-now); box-shadow: 0 2px 0 var(--cin-red); color: var(--ink); }
+.callstack { background: var(--cin-black); color: #fff; border-radius: var(--r-2); padding: var(--sp-3); flex: 1; font-family: var(--font-mono); font-size: 17px; line-height: 1.5; overflow: hidden; }
+.callstack .frame { display: block; padding-left: calc(var(--d, 0) * 18px); color: rgba(255,255,255,.62); }
+.callstack .frame.top { color: #fff; }
+.callstack .frame.top::before { content: ""; display: inline-block; width: 8px; height: 8px; background: var(--cin-red); margin-right: 8px; vertical-align: middle; }
+.callstack .note { font-family: var(--font-sans); font-size: 19px; line-height: 1.4; color: rgba(255,255,255,.9); margin-top: var(--sp-3); padding-top: var(--sp-2); border-top: 1px solid rgba(255,255,255,.18); }
+.ast { background: var(--code-bg); border: 1px solid var(--line); border-radius: var(--r-2); padding: var(--sp-3); flex: 1; font-family: var(--font-mono); font-size: 18px; line-height: 1.5; overflow: hidden; }
+.ast .ln { display: block; white-space: pre; transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out), background var(--dur-3); border-radius: 3px; }
+.ast .ln:not(.shown) { opacity: 0; transform: translateX(-10px); }
+.ast .ln.fresh { background: var(--hl-now); }
+.ast .ty { color: var(--cin-red-dark); font-weight: 600; }
+
+/* ---------- tabelas ---------- */
+table { border-collapse: collapse; width: 100%; font-size: var(--fs-small); }
+th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; line-height: 1.35; }
+th { font-weight: 700; color: var(--ink-2); border-bottom: 2px solid var(--ink); }
+td.ok { color: #1E6B35; font-weight: 700; }
+td.no { color: var(--ink-3); }
+
+/* ---------- PR cards ---------- */
+.prs { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-4); }
+.pr { border-top: 4px solid var(--cin-red); background: var(--paper-2); padding: var(--sp-4); border-radius: 0 0 var(--r-2) var(--r-2); }
+.pr.muted { border-top-color: var(--ink-3); }
+.pr .id { font-family: var(--font-mono); font-size: 18px; color: var(--ink-3); }
+.pr h3 { font-size: 26px; margin: 8px 0 var(--sp-2); line-height: 1.2; }
+.pr li { font-size: 19px; line-height: 1.4; }
+
+/* ---------- capa ---------- */
+.cover { justify-content: space-between; }
+.cover .meta { display: flex; justify-content: space-between; align-items: end; font-size: var(--fs-small); }
+.cover .bar { height: 12px; width: 240px; background: var(--cin-red); margin-bottom: var(--sp-6); }
+
+/* ---------- chrome: progresso, contador, controles ---------- */
+.chrome { position: absolute; left: 12px; right: 0; bottom: 0; height: 56px; display: flex; align-items: center; padding: 0 var(--sp-6) 0 var(--sp-12); gap: var(--sp-3); z-index: 10; pointer-events: none; }
+.chrome .where { font-size: 16px; color: var(--ink-3); flex: 1; }
+.chrome .count { font-family: var(--font-mono); font-size: 16px; color: var(--ink-2); }
+.chrome button { pointer-events: auto; background: none; border: 1px solid var(--line); color: var(--ink-2); width: 40px; height: 40px; border-radius: var(--r-1); font: 600 18px var(--font-sans); cursor: pointer; display: grid; place-items: center; transition: background var(--dur-1), color var(--dur-1); }
+.chrome button:hover { background: var(--cin-red); color: #fff; border-color: var(--cin-red); }
+.chrome button:focus-visible { outline: 3px solid var(--cin-red); outline-offset: 2px; }
+.deck.on-color .chrome .where, .deck.on-color .chrome .count { color: rgba(255,255,255,.8); }
+.deck.on-color .chrome button { color: #fff; border-color: rgba(255,255,255,.4); }
+.progress { position: absolute; left: 0; right: 0; bottom: 0; height: 5px; background: rgba(35,31,32,.08); z-index: 11; }
+.progress i { display: block; height: 100%; width: 0; background: var(--cin-red); transition: width var(--dur-3) var(--ease-in-out); }
+.deck.on-color .progress i { background: var(--cin-red); }
+.steps-dots { display: flex; gap: 6px; }
+.steps-dots b { width: 8px; height: 8px; border-radius: 50%; background: var(--line); transition: background var(--dur-1); }
+.steps-dots b.on { background: var(--cin-red); }
+
+/* ---------- misc ---------- */
+.callout { border-left: 6px solid var(--cin-red); padding: var(--sp-2) var(--sp-3); background: var(--paper-2); font-size: var(--fs-body); line-height: 1.4; }
+.grammar { font-family: var(--font-mono); font-size: 22px; line-height: 1.7; }
+.grammar .nt { color: var(--cin-red-dark); font-weight: 600; }
+.grammar .lit { background: var(--paper-2); padding: 0 6px; border-radius: 3px; }
+.grammar .new { box-shadow: inset 4px 0 0 var(--cin-red); padding-left: 16px; display: block; background: rgba(219,30,47,.05); }
+.grammar .old { padding-left: 16px; display: block; color: var(--ink-3); }
+.term { background: var(--cin-black); color: #EDEDED; border-radius: var(--r-2); padding: var(--sp-3) var(--sp-4); font: 19px/1.55 var(--font-mono); white-space: pre; }
+.term .p { color: #FF6B78; }
+.term .ok { color: #9BDB9F; }
+.term .err { color: #FFB4BB; }
+.big-num { font-size: 96px; font-weight: 800; letter-spacing: -.03em; line-height: 1; color: var(--cin-red); }
+.num-label { font-size: var(--fs-small); color: var(--ink-2); margin-top: 8px; }
+.ladder { font-family: var(--font-mono); font-size: 20px; }
+.ladder div { padding: 8px 14px; border-left: 3px solid var(--line); }
+.ladder div.hot { border-left-color: var(--cin-red); background: rgba(219,30,47,.07); font-weight: 600; }
+.ladder div span { color: var(--ink-3); font-family: var(--font-sans); font-size: 17px; margin-left: 10px; }
+
+/* ---------- FJ: regras de inferência, sobrelinha, destaques ---------- */
+.ov { text-decoration: overline; text-decoration-thickness: 1.5px; }
+.rules { display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-8); align-items: flex-end; }
+.rule { display: grid; grid-template-columns: auto auto; column-gap: var(--sp-2); align-items: center; font-family: var(--font-mono); font-size: 20px; font-variant-ligatures: none; }
+.rule .prem { grid-column: 1; text-align: center; padding: 0 var(--sp-1) 6px; line-height: 1.5; }
+.rule .concl { grid-column: 1; text-align: center; padding: 6px var(--sp-1) 0; border-top: 2px solid var(--ink); line-height: 1.5; }
+.rule .rname { grid-column: 2; grid-row: 1 / span 2; font-family: var(--font-sans); font-size: 16px; font-weight: 700; color: var(--cin-red-dark); line-height: 1.2; }
+.rule[data-at] .concl { border-top-color: var(--ink); }
+.redex { text-decoration: underline; text-decoration-color: var(--cin-red); text-decoration-thickness: 3px; text-underline-offset: 6px; }
+.hl { background: rgba(219,30,47,.10); border-radius: 3px; padding: 0 3px; }
+.hl2 { background: rgba(31,95,168,.12); border-radius: 3px; padding: 0 3px; }
+.ast .ln.shown[data-at="0"] { opacity: 1; transform: none; }
+blockquote.callout { margin: 0; }
+.inverse li code, .inverse p code { background: rgba(255,255,255,.12); color: #fff; }
+.rules.big .rule { font-size: 22px; }
+.grammar .old { color: var(--ink); }
+.callout.mono { line-height: 1.85; }
+pre.code.ctx { line-height: 2; }
+</style>
+</head>
+<body>
+<div class="viewport">
+<main class="deck" id="deck" aria-live="polite">
+
+<!-- 1. Capa -->
+<section class="slide inverse cover" data-title="Capa">
+  <div>
+    <div class="bar" aria-hidden="true"></div>
+    <div class="display">Featherweight<br>Java</div>
+    <p class="lead" style="margin-top:var(--sp-4)">Um núcleo mínimo de Java com sintaxe, tipos e semântica que cabem numa página.</p>
+  </div>
+  <div class="meta">
+    <span>Seminário: Types and Programming Languages, cap. 19<br>Centro de Informática, UFPE</span>
+    <span class="small">Use as setas, Espaço ou PageUp/PageDown. F para tela cheia.</span>
+  </div>
+</section>
+
+<!-- 2. Contexto -->
+<section class="slide" data-title="Contexto">
+  <div class="head"><div class="kicker">De onde vem</div><h1>Dois jeitos de estudar objetos no TAPL</h1></div>
+  <div class="cols grow">
+    <div class="stack">
+      <h2>Capítulo 18: codificar</h2>
+      <p>Objetos, classes e herança são <strong>montados</strong> com peças do lambda-cálculo: registros, referências e subtipagem.</p>
+      <p class="small">Mostra o mecanismo por baixo, mas o objeto deixa de ser visível como conceito.</p>
+    </div>
+    <div class="stack">
+      <h2>Capítulo 19: tratar como primitivo</h2>
+      <p>Classes e objetos são <strong>construções da própria linguagem</strong>, com regras de tipo e de avaliação próprias.</p>
+      <p class="small">É o caminho do Featherweight Java (FJ), proposto por Igarashi, Pierce e Wadler em 1999.</p>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:var(--sp-4)">FJ é um subconjunto estrito de Java: todo programa FJ é um programa Java executável, com o mesmo comportamento.</div>
+</section>
+
+<!-- 3. Por que mínimo -->
+<section class="slide" data-title="Por que um modelo mínimo">
+  <div class="head"><div class="kicker">Motivação</div><h1>Completude contra compacidade</h1></div>
+  <div class="cols w-60 grow">
+    <div class="stack">
+      <p>Um modelo formal serve para descrever uma linguagem com precisão e <strong>provar</strong> propriedades dela, como segurança de tipos.</p>
+      <p>Quanto mais recursos o modelo cobre, mais pesada fica a prova. FJ escolhe o outro extremo: corta tudo que alonga a prova sem mudar o argumento.</p>
+      <p>O resultado é útil para <strong>estender</strong> Java no papel: genéricos (GJ), raw types, classes internas e compilação que preserva tipos foram estudados sobre FJ.</p>
+    </div>
+    <blockquote class="callout" style="font-size:30px;line-height:1.3">Inside every large language is a small language struggling to get out.
+      <span class="small" style="display:block;margin-top:var(--sp-2)">Igarashi, Pierce e Wadler (1999)</span>
+    </blockquote>
+  </div>
+</section>
+
+<!-- 4. Tem / não tem -->
+<section class="slide" data-title="O que fica e o que sai">
+  <div class="head"><div class="kicker">Recorte</div><h1>O que FJ mantém de Java e o que corta</h1></div>
+  <div class="cols grow">
+    <div>
+      <h2 style="margin-bottom:var(--sp-3)">Mantém</h2>
+      <ul class="clean">
+        <li>Classes mutuamente recursivas</li>
+        <li>Criação de objetos e acesso a campos</li>
+        <li>Chamada e sobrescrita de métodos</li>
+        <li>Recursão aberta via <code>this</code></li>
+        <li>Subtipagem e cast</li>
+      </ul>
+    </div>
+    <div>
+      <h2 style="margin-bottom:var(--sp-3)">Corta</h2>
+      <ul class="clean">
+        <li><strong>Atribuição</strong>: campos só são definidos no construtor</li>
+        <li>Interfaces, sobrecarga, <code>super.m()</code>, <code>null</code></li>
+        <li>Tipos base (<code>int</code>, <code>bool</code>), exceções</li>
+        <li>Classes internas, métodos abstratos, <code>public</code>/<code>private</code></li>
+        <li>Concorrência e reflexão</li>
+      </ul>
+    </div>
+  </div>
+  <p class="small" style="margin-top:var(--sp-4)">Sem atribuição, FJ é um fragmento funcional de Java. Mesmo assim é Turing-completo: dá para codificar o lambda-cálculo nele.</p>
+</section>
+
+<!-- 5. Exemplo -->
+<section class="slide" data-title="Um programa FJ">
+  <div class="head"><div class="kicker">Exemplo do livro</div><h1>Um programa é uma tabela de classes mais um termo</h1></div>
+  <div class="cols w-60 grow">
+<pre class="code sm"><span class="k">class</span> A <span class="k">extends</span> Object { A() { <span class="k">super</span>(); } }
+<span class="k">class</span> B <span class="k">extends</span> Object { B() { <span class="k">super</span>(); } }
+
+<span class="k">class</span> Pair <span class="k">extends</span> Object {
+  Object fst;
+  Object snd;
+  <span class="c">// construtor</span>
+  Pair(Object fst, Object snd) {
+    <span class="k">super</span>(); <span class="k">this</span>.fst=fst; <span class="k">this</span>.snd=snd; }
+  <span class="c">// método</span>
+  Pair setfst(Object newfst) {
+    <span class="k">return new</span> Pair(newfst, <span class="k">this</span>.snd); }
+}</pre>
+    <div class="stack">
+      <p>Convenções rígidas, para a sintaxe ficar regular:</p>
+      <ul class="clean">
+        <li><code>extends</code> sempre escrito, mesmo para <code>Object</code></li>
+        <li>Construtor sempre presente: um parâmetro por campo, <code>super(...)</code> e depois <code>this.f=f</code></li>
+        <li>Receptor sempre explícito: <code>this.snd</code>, nunca <code>snd</code></li>
+        <li>Corpo de método é só <code>return t;</code></li>
+      </ul>
+      <p class="small"><code>super</code> e <code>=</code> só aparecem dentro do construtor.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 6. Cinco termos -->
+<section class="slide" data-title="Cinco formas de termo">
+  <div class="head"><div class="kicker">Sintaxe</div><h1>A linguagem inteira tem cinco formas de termo</h1></div>
+  <table>
+    <thead><tr><th style="width:22%">Forma</th><th style="width:28%">Gramática</th><th>No exemplo</th></tr></thead>
+    <tbody>
+      <tr><td>Variável</td><td class="mono">x</td><td><code>newfst</code>, <code>this</code></td></tr>
+      <tr><td>Acesso a campo</td><td class="mono">t.f</td><td><code>this.snd</code></td></tr>
+      <tr><td>Chamada de método</td><td class="mono">t.m(<span class="ov">t</span>)</td><td><code>new Pair(...).setfst(new B())</code></td></tr>
+      <tr><td>Criação de objeto</td><td class="mono">new C(<span class="ov">t</span>)</td><td><code>new A()</code>, <code>new Pair(..., ...)</code></td></tr>
+      <tr><td>Cast</td><td class="mono">(C) t</td><td><code>(Pair) t.fst</code></td></tr>
+    </tbody>
+  </table>
+  <div class="cols" style="margin-top:var(--sp-4)">
+    <p class="small">A barra em <span class="mono"><span class="ov">t</span></span> indica sequência: <span class="mono">t<sub>1</sub>, ..., t<sub>n</sub></span>.</p>
+    <p class="small"><code>this</code> é tratado como variável, não palavra-chave. Ele fica implicitamente ligado em todo corpo de método.</p>
+  </div>
+</section>
+
+<!-- 7. Sintaxe formal -->
+<section class="slide" data-title="Sintaxe formal">
+  <div class="head"><div class="kicker">Figura 19-1</div><h1>A gramática completa</h1></div>
+  <div class="cols w-60 grow">
+    <div class="grammar">
+      <span class="old"><span class="nt">CL</span> ::= <span class="lit">class</span> C <span class="lit">extends</span> C {<span class="ov">C f</span>; K <span class="ov">M</span>}</span>
+      <span class="old"><span class="nt">K</span>&nbsp; ::= C(<span class="ov">C f</span>) {<span class="lit">super</span>(<span class="ov">f</span>); <span class="lit">this</span>.<span class="ov">f</span>=<span class="ov">f</span>;}</span>
+      <span class="old"><span class="nt">M</span>&nbsp; ::= C m(<span class="ov">C x</span>) {<span class="lit">return</span> t;}</span>
+      <span class="new"><span class="nt">t</span>&nbsp; ::= x | t.f | t.m(<span class="ov">t</span>) | <span class="lit">new</span> C(<span class="ov">t</span>) | (C) t</span>
+      <span class="new"><span class="nt">v</span>&nbsp; ::= <span class="lit">new</span> C(<span class="ov">v</span>)</span>
+    </div>
+    <div class="stack">
+      <p><strong>Valores</strong> são só objetos com todos os argumentos já avaliados. "Tudo é objeto", como no lambda-cálculo "tudo é função".</p>
+      <p>Um <strong>programa</strong> é o par <span class="mono">(CT, t)</span>: uma tabela de classes e o termo a avaliar, que faz o papel do <code>main</code>.</p>
+      <p class="small">Metavariáveis: A..E classes, f e g campos, m métodos, x parâmetros, s e t termos, u e v valores.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 8. Nominal vs estrutural -->
+<section class="slide" data-title="Nominal e estrutural">
+  <div class="head"><div class="kicker">Seção 19.3</div><h1>Em Java, o nome do tipo importa</h1></div>
+  <div class="cols grow">
+    <div class="stack">
+      <h2>Estrutural</h2>
+      <pre class="code sm">NatPair = {fst:Nat, snd:Nat}</pre>
+      <p>O nome é só abreviação. Subtipagem é decidida comparando a <strong>forma</strong> dos tipos.</p>
+      <p class="small">Mais elegante para provas e para recursos avançados (polimorfismo, tipos abstratos). Domina a literatura.</p>
+    </div>
+    <div class="stack">
+      <h2>Nominal</h2>
+      <pre class="code sm"><span class="k">class</span> Pair <span class="k">extends</span> Object { ... }</pre>
+      <p>Todo tipo tem nome, e subtipagem é a que o programador <strong>declarou</strong> com <code>extends</code>.</p>
+      <ul class="clean">
+        <li>O nome vira etiqueta em tempo de execução: permite cast e <code>instanceof</code></li>
+        <li>Tipos recursivos saem de graça</li>
+        <li>Checar <code>C &lt;: D</code> é quase trivial</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 9. Subtipagem e class table -->
+<section class="slide" data-title="Subtipagem">
+  <div class="head"><div class="kicker">Figura 19-1</div><h1>Subtipagem sai direto das declarações <code style="background:none;padding:0;font-size:.8em">extends</code></h1></div>
+  <div class="rules" style="margin-bottom:var(--sp-6)">
+    <div class="rule"><div class="prem">&nbsp;</div><div class="concl">C &lt;: C</div><div class="rname">reflexiva</div></div>
+    <div class="rule"><div class="prem">C &lt;: D &nbsp;&nbsp; D &lt;: E</div><div class="concl">C &lt;: E</div><div class="rname">transitiva</div></div>
+    <div class="rule"><div class="prem">CT(C) = class C extends D {...}</div><div class="concl">C &lt;: D</div><div class="rname">extends</div></div>
+  </div>
+  <div class="cols">
+    <div class="stack">
+      <p>A <strong>tabela de classes</strong> <span class="mono">CT</span> mapeia cada nome de classe para sua declaração.</p>
+      <p><code>Object</code> é especial: não está na tabela, não tem campos nem métodos.</p>
+    </div>
+    <div class="stack">
+      <p>Condições de sanidade da tabela:</p>
+      <ul class="clean">
+        <li>toda classe citada existe em <span class="mono">CT</span></li>
+        <li><code>Object</code> não está em <span class="mono">CT</span></li>
+        <li>não há ciclo em <code>&lt;:</code></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- 10. Auxiliares -->
+<section class="slide" data-title="Funções auxiliares">
+  <div class="head"><div class="kicker">Figura 19-2</div><h1>Quatro consultas à tabela de classes</h1></div>
+  <table>
+    <thead><tr><th style="width:26%">Função</th><th style="width:30%">Devolve</th><th>Como</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">fields(C)</td><td>todos os campos <span class="mono"><span class="ov">C f</span></span>, herdados primeiro</td><td>campos de <code>D</code> (superclasse) seguidos dos de <code>C</code>; <code>fields(Object)</code> é vazio</td></tr>
+      <tr><td class="mono">mtype(m, C)</td><td>tipo <span class="mono"><span class="ov">B</span> → B</span></td><td>procura <code>m</code> em <code>C</code>; se não achar, sobe para a superclasse</td></tr>
+      <tr><td class="mono">mbody(m, C)</td><td>par <span class="mono">(<span class="ov">x</span>, t)</span>: parâmetros e corpo</td><td>mesma busca subindo a hierarquia: é aqui que mora a sobrescrita</td></tr>
+      <tr><td class="mono">override(m, D, <span class="ov">C</span>→C<sub>0</sub>)</td><td>sobrescrita válida?</td><td>se <code>m</code> existe em <code>D</code>, o tipo tem que ser <strong>idêntico</strong></td></tr>
+    </tbody>
+  </table>
+  <p class="small" style="margin-top:var(--sp-4)">Exemplo: <span class="mono">fields(Pair) = Object fst, Object snd</span> e <span class="mono">mbody(setfst, Pair) = (newfst, new Pair(newfst, this.snd))</span>.</p>
+</section>
+
+<!-- 11. Regras de computação -->
+<section class="slide" data-title="Avaliação">
+  <div class="head"><div class="kicker">Figura 19-3</div><h1>Três regras fazem todo o trabalho</h1></div>
+  <div class="rules">
+    <div class="rule"><div class="prem">fields(C) = <span class="ov">C f</span></div><div class="concl">(new C(<span class="ov">v</span>)).f<sub>i</sub> ⟶ v<sub>i</sub></div><div class="rname">E-ProjNew</div></div>
+    <div class="rule"><div class="prem">mbody(m, C) = (<span class="ov">x</span>, t<sub>0</sub>)</div><div class="concl">(new C(<span class="ov">v</span>)).m(<span class="ov">u</span>) ⟶ [<span class="ov">x</span> ↦ <span class="ov">u</span>, this ↦ new C(<span class="ov">v</span>)] t<sub>0</sub></div><div class="rname">E-InvkNew</div></div>
+    <div class="rule"><div class="prem">C &lt;: D</div><div class="concl">(D)(new C(<span class="ov">v</span>)) ⟶ new C(<span class="ov">v</span>)</div><div class="rname">E-CastNew</div></div>
+  </div>
+  <div class="cols" style="margin-top:var(--sp-6)">
+    <ul class="clean">
+      <li><strong>Campo:</strong> o construtor tem um argumento por campo, na mesma ordem. Pegar <code>f<sub>i</sub></code> é pegar o i-ésimo argumento.</li>
+      <li><strong>Método:</strong> como a regra beta, mas o corpo é achado pela <strong>classe do receptor</strong> e <code>this</code> é substituído pelo próprio objeto.</li>
+    </ul>
+    <ul class="clean">
+      <li><strong>Cast:</strong> em tempo de execução só confere <code>C &lt;: D</code> e some. O objeto não muda.</li>
+      <li>Sem atribuição, não há heap: a avaliação acontece inteira na sintaxe.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 12. Congruência -->
+<section class="slide" data-title="Chamada por valor">
+  <div class="head"><div class="kicker">Figura 19-3</div><h1>As outras cinco regras só escolhem onde avaliar</h1></div>
+  <div class="cols w-60 grow">
+    <div class="rules" style="gap:28px 40px">
+      <div class="rule"><div class="prem">t<sub>0</sub> ⟶ t<sub>0</sub>'</div><div class="concl">t<sub>0</sub>.f ⟶ t<sub>0</sub>'.f</div><div class="rname">E-Field</div></div>
+      <div class="rule"><div class="prem">t<sub>0</sub> ⟶ t<sub>0</sub>'</div><div class="concl">t<sub>0</sub>.m(<span class="ov">t</span>) ⟶ t<sub>0</sub>'.m(<span class="ov">t</span>)</div><div class="rname">E-Invk-Recv</div></div>
+      <div class="rule"><div class="prem">t<sub>i</sub> ⟶ t<sub>i</sub>'</div><div class="concl">v<sub>0</sub>.m(<span class="ov">v</span>, t<sub>i</sub>, <span class="ov">t</span>) ⟶ v<sub>0</sub>.m(<span class="ov">v</span>, t<sub>i</sub>', <span class="ov">t</span>)</div><div class="rname">E-Invk-Arg</div></div>
+      <div class="rule"><div class="prem">t<sub>i</sub> ⟶ t<sub>i</sub>'</div><div class="concl">new C(<span class="ov">v</span>, t<sub>i</sub>, <span class="ov">t</span>) ⟶ new C(<span class="ov">v</span>, t<sub>i</sub>', <span class="ov">t</span>)</div><div class="rname">E-New-Arg</div></div>
+      <div class="rule"><div class="prem">t<sub>0</sub> ⟶ t<sub>0</sub>'</div><div class="concl">(C)t<sub>0</sub> ⟶ (C)t<sub>0</sub>'</div><div class="rname">E-Cast</div></div>
+    </div>
+    <div class="stack">
+      <p>Estratégia <strong>chamada por valor</strong>: primeiro o receptor, depois os argumentos da esquerda para a direita.</p>
+      <p>A mesma ideia em forma de <strong>contexto de avaliação</strong>, um termo com um buraco <code>[]</code> onde está o próximo passo:</p>
+      <pre class="code xs ctx">E ::= []  |  E.f  |  E.m(<span class="ov">t</span>)  |  v.m(<span class="ov">v</span>, E, <span class="ov">t</span>)
+   |  new C(<span class="ov">v</span>, E, <span class="ov">t</span>)  |  (C)E</pre>
+    </div>
+  </div>
+</section>
+
+<!-- 13. Stepper: avaliação com cast -->
+<section class="slide" data-title="Avaliação passo a passo" data-steps="3">
+  <div class="head" style="margin-bottom:var(--sp-4)"><div class="kicker">Passo a passo</div><h2>Avaliando um termo com cast, um redex por vez</h2></div>
+  <div class="tracer" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)">
+    <div class="pane">
+      <div class="pane-title">Termo <span class="mono">o redex está sublinhado</span></div>
+      <div class="ast" style="font-size:20px;line-height:1.9">
+<span class="ln shown" data-at="0">  ((Pair) <span class="redex">new Pair(new Pair(new A(),new B()), new A()).fst</span>).snd</span><span class="ln" data-at="1">⟶ (<span class="redex">(Pair)new Pair(new A(),new B())</span>).snd</span><span class="ln" data-at="2">⟶ <span class="redex">new Pair(new A(),new B()).snd</span></span><span class="ln" data-at="3">⟶ new B()</span>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="pane-title">Regra aplicada</div>
+      <div class="callstack">
+        <div class="only" data-only="0"><span class="frame top">E-ProjNew</span><span class="frame" style="--d:1">dentro de E-Cast e E-Field</span><div class="note">Contexto <code>((Pair)[]).snd</code>. O primeiro campo de <code>Pair</code> é <code>fst</code>, então sai o primeiro argumento: <code>new Pair(new A(),new B())</code>.</div></div>
+        <div class="only" data-only="1"><span class="frame top">E-CastNew</span><span class="frame" style="--d:1">dentro de E-Field</span><div class="note">O objeto é <code>Pair</code> e <code>Pair &lt;: Pair</code>. O cast passa e desaparece.</div></div>
+        <div class="only" data-only="2"><span class="frame top">E-ProjNew</span><div class="note"><code>snd</code> é o segundo campo de <code>Pair</code>: sai o segundo argumento.</div></div>
+        <div class="only" data-only="3"><span class="frame top">valor</span><div class="note"><code>new B()</code> não tem mais nada para avaliar. É um valor e a avaliação termina.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 14. Por que o cast -->
+<section class="slide" data-title="Por que o cast">
+  <div class="head"><div class="kicker">Tipos estáticos</div><h1>Sem o cast, o mesmo termo nem tipa</h1></div>
+  <div class="cols grow">
+    <div class="stack">
+<pre class="code sm">new Pair(new Pair(new A(), new B()),
+         new A()).fst.snd</pre>
+      <p>O campo <code>fst</code> foi declarado como <code>Object</code>. Para o verificador de tipos, <code>...fst</code> tem tipo <code>Object</code>.</p>
+      <p><code>fields(Object)</code> é vazio, então <code>.snd</code> é rejeitado, mesmo que em tempo de execução ali exista um <code>Pair</code>.</p>
+    </div>
+    <div class="stack">
+<pre class="code sm">((Pair) new Pair(new Pair(new A(), new B()),
+                 new A()).fst).snd</pre>
+      <p>O cast <strong>abaixa</strong> o tipo estático de <code>Object</code> para <code>Pair</code> (downcast). Agora <code>.snd</code> tipa.</p>
+      <p>O preço: o cast é conferido em tempo de execução e pode falhar. Aqui ele passa, como vimos no passo a passo.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 15. Stepper: chamada de método -->
+<section class="slide" data-title="Chamada de método" data-steps="3">
+  <div class="head" style="margin-bottom:var(--sp-4)"><div class="kicker">E-InvkNew</div><h2>Chamar um método é substituir parâmetros e <code style="background:none;padding:0">this</code></h2></div>
+  <div class="tracer" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)">
+    <div class="pane">
+      <div class="pane-title">Termo</div>
+      <div class="ast" style="font-size:20px;line-height:1.9">
+<span class="ln shown" data-at="0">  <span class="redex">new Pair(new A(), new B()).setfst(new B())</span></span><span class="ln" data-at="1">  corpo: new Pair(<span class="hl">newfst</span>, <span class="hl2">this</span>.snd)</span><span class="ln" data-at="2">⟶ new Pair(<span class="hl">new B()</span>, <span class="redex"><span class="hl2">new Pair(new A(), new B())</span>.snd</span>)</span><span class="ln" data-at="3">⟶ new Pair(new B(), new B())</span>
+      </div>
+    </div>
+    <div class="pane">
+      <div class="pane-title">O que acontece</div>
+      <div class="callstack">
+        <div class="only" data-only="0"><span class="frame top">receptor e argumento já são valores</span><div class="note">Nenhuma regra de congruência se aplica. Hora da regra de computação.</div></div>
+        <div class="only" data-only="1"><span class="frame top">mbody(setfst, Pair)</span><div class="note">A classe do receptor é <code>Pair</code>. Lá o método tem parâmetro <code>newfst</code> e o corpo ao lado.</div></div>
+        <div class="only" data-only="2"><span class="frame top">[newfst ↦ new B(), this ↦ receptor]</span><div class="note">O parâmetro vira o argumento e <code>this</code> vira o próprio receptor. Essa é a <strong>recursão aberta</strong> via <code>this</code>.</div></div>
+        <div class="only" data-only="3"><span class="frame top">E-ProjNew dentro de E-New-Arg</span><div class="note">O acesso <code>.snd</code> restante é avaliado e o resultado é um valor.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 16. Stuck -->
+<section class="slide" data-title="Quando trava">
+  <div class="head"><div class="kicker">Erros em tempo de execução</div><h1>Três jeitos de uma computação travar</h1></div>
+  <div class="prs">
+    <div class="pr"><div class="id">campo inexistente</div><h3>Acessar campo que a classe não declara</h3><p class="small">nenhuma regra casa com <code>new A().fst</code></p></div>
+    <div class="pr"><div class="id">método inexistente</div><h3>"Message not understood"</h3><p class="small">nenhuma regra casa com <code>new A().setfst(...)</code></p></div>
+    <div class="pr muted"><div class="id">cast inválido</div><h3>Cast para algo que não é superclasse</h3><p class="small"><code>(A)new B()</code>: <code>B &lt;: A</code> é falso, então E-CastNew não se aplica</p></div>
+  </div>
+  <p class="lead" style="margin-top:var(--sp-6)">FJ não tem exceções: travar é o erro. O sistema de tipos garante que os dois primeiros nunca acontecem. O terceiro só pode acontecer se houver downcast.</p>
+</section>
+
+<!-- 17. Tipagem de termos -->
+<section class="slide" data-title="Tipagem de termos">
+  <div class="head"><div class="kicker">Figura 19-4</div><h1>Uma regra de tipo para cada forma de termo</h1></div>
+  <div class="rules">
+    <div class="rule"><div class="prem">x:C ∈ Γ</div><div class="concl">Γ ⊢ x : C</div><div class="rname">T-Var</div></div>
+    <div class="rule"><div class="prem">Γ ⊢ t<sub>0</sub> : C<sub>0</sub> &nbsp;&nbsp; fields(C<sub>0</sub>) = <span class="ov">C f</span></div><div class="concl">Γ ⊢ t<sub>0</sub>.f<sub>i</sub> : C<sub>i</sub></div><div class="rname">T-Field</div></div>
+    <div class="rule"><div class="prem">Γ ⊢ t<sub>0</sub> : C<sub>0</sub> &nbsp; mtype(m, C<sub>0</sub>) = <span class="ov">D</span>→C &nbsp; Γ ⊢ <span class="ov">t</span> : <span class="ov">C</span> &nbsp; <span class="ov">C</span> &lt;: <span class="ov">D</span></div><div class="concl">Γ ⊢ t<sub>0</sub>.m(<span class="ov">t</span>) : C</div><div class="rname">T-Invk</div></div>
+    <div class="rule"><div class="prem">fields(C) = <span class="ov">D f</span> &nbsp;&nbsp; Γ ⊢ <span class="ov">t</span> : <span class="ov">C</span> &nbsp;&nbsp; <span class="ov">C</span> &lt;: <span class="ov">D</span></div><div class="concl">Γ ⊢ new C(<span class="ov">t</span>) : C</div><div class="rname">T-New</div></div>
+  </div>
+  <div class="cols" style="margin-top:var(--sp-6)">
+    <p>Lê-se <span class="mono">Γ ⊢ t : C</span> como "no ambiente Γ, o termo t tem tipo C". Γ guarda o tipo de cada variável.</p>
+    <p>Não há regra de subsunção solta: o <code>&lt;:</code> aparece só onde é preciso, nos argumentos. A apresentação é <strong>algorítmica</strong>, como em Java: cada termo tem um tipo mínimo único.</p>
+  </div>
+</section>
+
+<!-- 18. Casts -->
+<section class="slide" data-title="Três regras de cast" data-steps="2">
+  <div class="head"><div class="kicker">Figura 19-4</div><h1>Cast tem três regras, e uma delas é "estúpida"</h1></div>
+  <div class="rules">
+    <div class="rule"><div class="prem">Γ ⊢ t<sub>0</sub> : D &nbsp;&nbsp; D &lt;: C</div><div class="concl">Γ ⊢ (C)t<sub>0</sub> : C</div><div class="rname">T-UCast<br><span class="small">upcast</span></div></div>
+    <div class="rule"><div class="prem">Γ ⊢ t<sub>0</sub> : D &nbsp; C &lt;: D &nbsp; C ≠ D</div><div class="concl">Γ ⊢ (C)t<sub>0</sub> : C</div><div class="rname">T-DCast<br><span class="small">downcast</span></div></div>
+    <div class="rule" data-at="1"><div class="prem">Γ ⊢ t<sub>0</sub> : D &nbsp; C ≮: D &nbsp; D ≮: C &nbsp; <em>stupid warning</em></div><div class="concl">Γ ⊢ (C)t<sub>0</sub> : C</div><div class="rname">T-SCast<br><span class="small">stupid cast</span></div></div>
+  </div>
+  <div class="cols" style="margin-top:var(--sp-6)">
+    <div class="stack" data-at="1">
+      <p>O compilador Java rejeita cast entre classes não relacionadas. Por que FJ aceita?</p>
+      <p>Porque um termo bem tipado pode <strong>virar</strong> um assim durante a avaliação:</p>
+    </div>
+    <div class="stack" data-at="2">
+<pre class="code sm">(A)(Object)new B()   <span class="c">// T-DCast: ok</span>
+⟶ (A)new B()          <span class="c">// só T-SCast tipa</span></pre>
+      <p class="small">Sem T-SCast, a preservação de tipos seria falsa. Uma tipagem FJ só corresponde a uma tipagem Java se não usar essa regra.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 19. Métodos e classes -->
+<section class="slide" data-title="Tipagem de métodos e classes">
+  <div class="head"><div class="kicker">Figura 19-4</div><h1>Métodos e classes também são verificados</h1></div>
+  <div class="rules big" style="gap:var(--sp-4) var(--sp-10)">
+    <div class="rule"><div class="prem"><span class="ov">x</span>:<span class="ov">C</span>, this:C ⊢ t<sub>0</sub> : E<sub>0</sub> &nbsp; E<sub>0</sub> &lt;: C<sub>0</sub><br>CT(C) = class C extends D {...} &nbsp; override(m, D, <span class="ov">C</span>→C<sub>0</sub>)</div><div class="concl">C<sub>0</sub> m(<span class="ov">C x</span>) {return t<sub>0</sub>;} OK in C</div><div class="rname">método</div></div>
+    <div class="rule"><div class="prem">K = C(<span class="ov">D g</span>, <span class="ov">C f</span>) {super(<span class="ov">g</span>); this.<span class="ov">f</span>=<span class="ov">f</span>;}<br>fields(D) = <span class="ov">D g</span> &nbsp;&nbsp; <span class="ov">M</span> OK in C</div><div class="concl">class C extends D {<span class="ov">C f</span>; K <span class="ov">M</span>} OK</div><div class="rname">classe</div></div>
+  </div>
+  <div class="cols" style="margin-top:var(--sp-6)">
+    <ul class="clean">
+      <li><strong>Método:</strong> o corpo é tipado com os parâmetros e com <code>this : C</code>. O resultado pode ser subtipo do declarado.</li>
+      <li>Sobrescrita exige o mesmo tipo da superclasse.</li>
+    </ul>
+    <ul class="clean">
+      <li><strong>Classe:</strong> o construtor tem que passar os campos herdados para <code>super</code> e inicializar os próprios.</li>
+      <li>Sem circularidade: os tipos dos métodos são declarados, então a ordem não importa.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- 20. Propriedades -->
+<section class="slide" data-title="Segurança de tipos">
+  <div class="head"><div class="kicker">Seção 19.5</div><h1>Bem tipado não trava, exceto em downcast</h1></div>
+  <div class="cols grow">
+    <div class="stack">
+      <h2>Preservação</h2>
+      <div class="callout mono" style="font-size:21px">Se Γ ⊢ t : C e t ⟶ t', então Γ ⊢ t' : C' para algum C' &lt;: C.</div>
+      <p>O tipo pode ficar <strong>mais específico</strong> durante a avaliação, nunca diferente.</p>
+      <p class="small">Exemplo: <code>(Object)new A()</code> tem tipo <code>Object</code> e avança para <code>new A()</code>, de tipo <code>A</code>.</p>
+    </div>
+    <div class="stack">
+      <h2>Progresso</h2>
+      <div class="callout mono" style="font-size:21px">Se t é fechado, bem tipado e não avança, então t é um valor ou t = E[(C)(new D(<span class="ov">v</span>))] com D ≮: C.</div>
+      <p>A única forma de travar é um <strong>downcast que falha</strong>. Campo e método inexistentes nunca acontecem.</p>
+      <p class="small">Se o programa só tem upcasts, ele nunca trava. Em Java completo, o cast que falha vira exceção.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 21. Exercícios -->
+<section class="slide" data-title="Perguntas do capítulo">
+  <div class="head"><div class="kicker">Exercícios do livro</div><h1>Três perguntas que ajudam a fixar o modelo</h1></div>
+  <table>
+    <thead><tr><th style="width:12%">Exerc.</th><th style="width:38%">Pergunta</th><th>Ideia da resposta</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">19.4.1</td><td>Por que não há regra dizendo que <code>Object</code> é supertipo de tudo, como S-Top?</td><td>Toda classe declara uma superclasse e não há ciclos, então toda cadeia de <code>extends</code> termina em <code>Object</code>. A transitividade já dá <code>C &lt;: Object</code>, e os únicos tipos são classes.</td></tr>
+      <tr><td class="mono">19.4.3</td><td>Como adicionar atribuição a campos?</td><td>Seguir o capítulo 13: introduzir locações e uma memória (heap). Objetos passam a ser referências, e a avaliação deixa de acontecer só na sintaxe.</td></tr>
+      <tr><td class="mono">19.4.7</td><td>Como adicionar <code>super.m()</code>?</td><td>A busca do corpo precisa começar na superclasse da classe <strong>onde o método foi escrito</strong>, não na do receptor. O corpo tem que lembrar a classe que o definiu.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 22. Codificação vs primitivo -->
+<section class="slide" data-title="Codificar ou primitivo">
+  <div class="head"><div class="kicker">Seção 19.6</div><h1>As duas visões se complementam</h1></div>
+  <div class="cols grow">
+    <div class="stack">
+      <h2>Codificação (cap. 18)</h2>
+      <ul class="clean">
+        <li>Expõe os mecanismos de encapsulamento e reuso</li>
+        <li>Mostra como um compilador traduz objetos para algo mais baixo nível</li>
+      </ul>
+    </div>
+    <div class="stack">
+      <h2>Primitivo (cap. 19)</h2>
+      <ul class="clean">
+        <li>Fala de tipos e avaliação de objetos diretamente</li>
+        <li>Melhor ferramenta para projetar e documentar uma linguagem</li>
+      </ul>
+    </div>
+  </div>
+  <div class="callout" style="margin-top:var(--sp-4)">O ideal tem as duas: uma linguagem de alto nível com regras próprias, uma tradução para registros e funções, e uma prova de que a tradução preserva tipos e avaliação. Para FJ isso foi feito por League, Trifonov e Shao (2001).</div>
+</section>
+
+<!-- 23. Fechamento -->
+<section class="slide inverse" data-title="Resumo">
+  <div class="head"><div class="kicker">Para levar</div><h1>Featherweight Java em uma página</h1></div>
+  <ul class="clean" style="max-width:60ch">
+    <li>Cinco termos: variável, campo, método, <code>new</code> e cast</li>
+    <li>Subtipagem nominal, vinda direto de <code>extends</code></li>
+    <li>Três regras de computação e avaliação por valor, sem heap</li>
+    <li>Três regras de cast, incluindo o "stupid cast" para a preservação funcionar</li>
+    <li>Segurança: bem tipado só trava em downcast</li>
+  </ul>
+  <div style="margin-top:auto" class="small">
+    Pierce, B. C. <em>Types and Programming Languages</em>, MIT Press, 2002, cap. 19.<br>
+    Igarashi, A.; Pierce, B. C.; Wadler, P. Featherweight Java: a minimal core calculus for Java and GJ. OOPSLA 1999; ACM TOPLAS 23(3), 2001.
+  </div>
+</section>
+
+<nav class="chrome" aria-label="Navegação">
+  <span class="where" id="where"></span>
+  <span class="steps-dots" id="dots" aria-hidden="true"></span>
+  <span class="count" id="count"></span>
+  <button id="prev" aria-label="Slide anterior">&#8249;</button>
+  <button id="next" aria-label="Próximo slide">&#8250;</button>
+  <button id="fs" aria-label="Tela cheia">&#x26F6;</button>
+</nav>
+<div class="progress" aria-hidden="true"><i id="bar"></i></div>
+</main>
+</div>
+
+<script>
+(() => {
+  const deck = document.getElementById('deck');
+  const slides = [...deck.querySelectorAll('.slide')];
+  const $ = id => document.getElementById(id);
+  let i = 0, step = 0;
+
+  const fit = () => deck.style.setProperty('--scale', Math.min(innerWidth / 1600, innerHeight / 900));
+  addEventListener('resize', fit); fit();
+
+  const stepsOf = s => +(s.dataset.steps || 0);
+
+  function paint() {
+    slides.forEach((s, k) => {
+      s.classList.toggle('active', k === i);
+      s.classList.toggle('past', k < i);
+    });
+    const s = slides[i];
+    s.querySelectorAll('[data-at]').forEach(el => {
+      const at = +el.dataset.at;
+      el.classList.toggle('shown', step >= at);
+      el.classList.toggle('fresh', step === at && step > 0);
+    });
+    s.querySelectorAll('[data-only]').forEach(el => el.classList.toggle('on', +el.dataset.only === step));
+    s.querySelectorAll('.seg').forEach(el => {
+      const on = +el.dataset.on;
+      el.classList.toggle('now', on === step);
+      el.classList.toggle('done', on < step);
+    });
+    s.querySelectorAll('[data-focus]').forEach(el => el.classList.toggle('focus', step >= +el.dataset.focus));
+    s.querySelectorAll('[data-dim]').forEach(el => el.classList.toggle('dim', step >= +el.dataset.dim));
+
+    deck.classList.toggle('on-color', s.classList.contains('inverse') || s.classList.contains('dark'));
+    $('where').textContent = s.dataset.title || '';
+    $('count').textContent = `${i + 1} / ${slides.length}`;
+    $('bar').style.width = `${((i + (stepsOf(s) ? step / (stepsOf(s) + 1) : 0)) / (slides.length - 1)) * 100}%`;
+    const n = stepsOf(s);
+    $('dots').innerHTML = n ? Array.from({length: n + 1}, (_, k) => `<b class="${k <= step ? 'on' : ''}"></b>`).join('') : '';
+    try { history.replaceState(null, '', `#${i + 1}` + (step ? `.${step}` : '')); } catch (e) {}
+  }
+
+  function go(to, toStep = 0) {
+    i = Math.max(0, Math.min(slides.length - 1, to));
+    step = Math.max(0, Math.min(stepsOf(slides[i]), toStep));
+    paint();
+  }
+  const next = () => step < stepsOf(slides[i]) ? (step++, paint()) : (i < slides.length - 1 && go(i + 1));
+  const prev = () => step > 0 ? (step--, paint()) : (i > 0 && go(i - 1, stepsOf(slides[i - 1])));
+
+  function toggleFs() {
+    if (!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(() => {});
+    else document.exitFullscreen?.();
+  }
+
+  addEventListener('keydown', e => {
+    if (e.altKey || e.ctrlKey || e.metaKey) return;
+    switch (e.key) {
+      case 'ArrowRight': case 'PageDown': case ' ': case 'ArrowDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': case 'ArrowUp': e.preventDefault(); prev(); break;
+      case 'Home': go(0); break;
+      case 'End': go(slides.length - 1); break;
+      case 'f': case 'F': toggleFs(); break;
+    }
+  });
+  $('next').onclick = next; $('prev').onclick = prev; $('fs').onclick = toggleFs;
+  document.addEventListener('fullscreenchange', () => $('fs').setAttribute('aria-label', document.fullscreenElement ? 'Sair da tela cheia' : 'Tela cheia'));
+
+  // clique na metade direita avança, esquerda volta (útil com apresentador remoto)
+  deck.addEventListener('click', e => {
+    if (e.target.closest('button')) return;
+    const r = deck.getBoundingClientRect();
+    (e.clientX - r.left > r.width / 2 ? next : prev)();
+  });
+
+  const m = location.hash.match(/^#(\d+)(?:\.(\d+))?$/);
+  go(m ? +m[1] - 1 : 0, m && m[2] ? +m[2] : 0);
+})();
+</script>
+</body>
+</html>

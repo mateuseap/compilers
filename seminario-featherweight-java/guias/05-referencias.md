@@ -2,7 +2,7 @@
 
 ## Fonte principal
 
-- Pierce, B. C. *Types and Programming Languages*. MIT Press, 2002. Capítulo 19, "Case Study: Featherweight Java", páginas 247 a 264. O capítulo está em [`../livro/`](../livro/).
+- Pierce, B. C. *Types and Programming Languages*. MIT Press, 2002. Capítulo 19, "Case Study: Featherweight Java", páginas 247 a 264.
 
 ## Artigo original
 
@@ -33,3 +33,5 @@ A versão do livro usa chamada por valor; o artigo usa uma redução não determ
 - League, C.; Trifonov, V.; Shao, Z. *Type-preserving compilation of Featherweight Java.* FOOL 2001. (tradução de FJ que preserva tipos)
 - Flatt, M.; Krishnamurthi, S.; Felleisen, M. *Classes and mixins.* POPL 1998. (modelo maior, com atribuição e cast)
 - Abadi, M.; Cardelli, L. *A Theory of Objects.* Springer, 1996. (cálculo de objetos)
+
+> O capítulo do TAPL não é redistribuído neste repositório por direitos autorais. Consulte o exemplar fornecido na disciplina ou a biblioteca. O artigo original tem uma cópia gratuita do autor linkada acima.

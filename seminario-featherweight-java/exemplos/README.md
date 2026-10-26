@@ -31,7 +31,7 @@ upcast      -> new A()
 (A)(Object)new B() -> ClassCastException (em FJ: travado)
 ```
 
-Compare com os slides 13 e 15: os resultados são os mesmos que as regras de avaliação produzem no papel.
+Compare com os slides 14 e 16: os resultados são os mesmos que as regras de avaliação produzem no papel.
 
 ## Ver os erros de tipo
 

@@ -2,7 +2,7 @@
 
 ## Fonte principal
 
-- Pierce, B. C. *Types and Programming Languages*. MIT Press, 2002. Capítulo 19, "Case Study: Featherweight Java", páginas 247 a 264.
+- Pierce, B. C. *Types and Programming Languages*. MIT Press, 2002. Capítulo 19, "Case Study: Featherweight Java", páginas 247 a 264. [PDF usado na disciplina](../livro/tapl-cap19-featherweight-java.pdf).
 
 ## Artigo original
 
@@ -34,4 +34,4 @@ A versão do livro usa chamada por valor; o artigo usa uma redução não determ
 - Flatt, M.; Krishnamurthi, S.; Felleisen, M. *Classes and mixins.* POPL 1998. (modelo maior, com atribuição e cast)
 - Abadi, M.; Cardelli, L. *A Theory of Objects.* Springer, 1996. (cálculo de objetos)
 
-> O capítulo do TAPL não é redistribuído neste repositório por direitos autorais. Consulte o exemplar fornecido na disciplina ou a biblioteca. O artigo original tem uma cópia gratuita do autor linkada acima.
+> O capítulo está incluído com autorização para uso na disciplina. O artigo original também tem uma cópia gratuita do autor linkada acima.

@@ -7,3 +7,6 @@ out/
 .vscode/
 *.iml
 .DS_Store
+
+# Local artifact staging
+.artifacts/

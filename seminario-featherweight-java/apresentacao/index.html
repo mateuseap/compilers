@@ -268,6 +268,13 @@ blockquote.callout { margin: 0; }
 .grammar .old { color: var(--ink); }
 .callout.mono { line-height: 1.85; }
 pre.code.ctx { line-height: 2; }
+
+.source-layout { display:grid; grid-template-columns:minmax(0,1.65fr) minmax(0,.8fr); gap:var(--sp-5,40px); flex:1; min-height:0; align-items:start; }
+.source-frame { min-height:0; background:#fff; border:1px solid var(--line); border-radius:var(--r-2); padding:12px; display:flex; flex-direction:column; }
+.source-frame img { width:100%; height:auto; max-height:540px; object-fit:contain; object-position:center top; display:block; }
+.source-caption { font-size:15px; line-height:1.35; color:var(--ink-3); margin-top:8px; }
+.source-full { flex:1; min-height:0; display:flex; align-items:center; justify-content:center; }
+.source-full img { max-width:100%; max-height:620px; object-fit:contain; border:1px solid var(--line); border-radius:var(--r-1); background:#fff; }
 </style>
 </head>
 <body>
@@ -476,6 +483,25 @@ pre.code.ctx { line-height: 2; }
     </tbody>
   </table>
   <p class="small" style="margin-top:var(--sp-4)">Exemplo: <span class="mono">fields(Pair) = Object fst, Object snd</span> e <span class="mono">mbody(setfst, Pair) = (newfst, new Pair(newfst, this.snd))</span>.</p>
+</section>
+
+<!-- 11. Fonte original: avaliação -->
+<section class="slide" data-title="A figura do livro">
+  <div class="head" style="margin-bottom:var(--sp-4)"><div class="kicker">TAPL, p. 258</div><h2>A semântica operacional completa na Figura 19-3</h2></div>
+  <div class="source-layout">
+    <figure class="source-frame">
+      <img src="assets/tapl-fig19-3.png" alt="Figura 19-3 do TAPL: regras de avaliação do Featherweight Java">
+      <figcaption class="source-caption">Pierce, <em>Types and Programming Languages</em>, cap. 19, Figura 19-3, p. 258. Recorte do exemplar autorizado da disciplina.</figcaption>
+    </figure>
+    <div class="stack">
+      <p>A figura se divide em dois grupos:</p>
+      <ul class="clean">
+        <li><strong>3 regras de computação</strong>, à esquerda: campo, método e cast. Elas mudam o programa.</li>
+        <li><strong>5 regras de congruência</strong>: escolhem qual subtermo deve avançar primeiro.</li>
+      </ul>
+      <div class="callout">O slide seguinte amplia as três regras centrais; depois vemos a estratégia chamada por valor.</div>
+    </div>
+  </div>
 </section>
 
 <!-- 11. Regras de computação -->
@@ -715,6 +741,27 @@ pre.code.ctx { line-height: 2; }
     Pierce, B. C. <em>Types and Programming Languages</em>, MIT Press, 2002, cap. 19.<br>
     Igarashi, A.; Pierce, B. C.; Wadler, P. Featherweight Java: a minimal core calculus for Java and GJ. OOPSLA 1999; ACM TOPLAS 23(3), 2001.
   </div>
+</section>
+
+<!-- 24. Apêndice: Figura 19-1 -->
+<section class="slide" data-title="Apêndice: Figura 19-1">
+  <div class="head" style="margin-bottom:var(--sp-3)"><div class="kicker">TAPL, p. 255</div><h2>Fonte original: sintaxe e subtipagem</h2></div>
+  <figure class="source-full"><img src="assets/tapl-fig19-1.png" alt="Figura 19-1 do TAPL: sintaxe e subtipagem do Featherweight Java"></figure>
+  <p class="source-caption">Pierce, <em>Types and Programming Languages</em>, cap. 19, Figura 19-1, p. 255. Apêndice para consulta.</p>
+</section>
+
+<!-- 25. Apêndice: Figura 19-2 -->
+<section class="slide" data-title="Apêndice: Figura 19-2">
+  <div class="head" style="margin-bottom:var(--sp-3)"><div class="kicker">TAPL, p. 257</div><h2>Fonte original: definições auxiliares</h2></div>
+  <figure class="source-full"><img src="assets/tapl-fig19-2.png" alt="Figura 19-2 do TAPL: definições auxiliares do Featherweight Java"></figure>
+  <p class="source-caption">Pierce, <em>Types and Programming Languages</em>, cap. 19, Figura 19-2, p. 257. Apêndice para consulta.</p>
+</section>
+
+<!-- 26. Apêndice: Figura 19-4 -->
+<section class="slide" data-title="Apêndice: Figura 19-4">
+  <div class="head" style="margin-bottom:var(--sp-3)"><div class="kicker">TAPL, p. 259</div><h2>Fonte original: regras de tipagem</h2></div>
+  <figure class="source-full"><img src="assets/tapl-fig19-4.png" alt="Figura 19-4 do TAPL: regras de tipagem do Featherweight Java"></figure>
+  <p class="source-caption">Pierce, <em>Types and Programming Languages</em>, cap. 19, Figura 19-4, p. 259. Apêndice para consulta.</p>
 </section>
 
 <nav class="chrome" aria-label="Navegação">

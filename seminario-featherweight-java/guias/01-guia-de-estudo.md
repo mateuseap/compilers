@@ -1,6 +1,6 @@
 # Guia de estudo: Featherweight Java
 
-Baseado no capítulo 19 de *Types and Programming Languages* (Benjamin C. Pierce, MIT Press, 2002), usado na disciplina. As figuras citadas (19-1 a 19-4) estão nas páginas 255 a 259.
+Baseado no [capítulo 19 de *Types and Programming Languages*](../livro/tapl-cap19-featherweight-java.pdf) (Benjamin C. Pierce, MIT Press, 2002), usado com autorização na disciplina. As figuras citadas (19-1 a 19-4) estão nas páginas 255 a 259.
 
 Ordem sugerida de leitura: este guia, depois o capítulo, depois o [passo a passo das reduções](02-reducoes-passo-a-passo.md), e por fim as [perguntas](03-perguntas-e-respostas.md).
 

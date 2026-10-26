@@ -1,4 +1,4 @@
-# Roteiro detalhado: Pessoa 2, avaliação (slides 11 a 17)
+# Roteiro detalhado: Pessoa 2, avaliação (slides 11 a 16)
 
 Sua parte começa quando a pessoa 1 já explicou:
 
@@ -18,7 +18,7 @@ Tempo-alvo: **8 a 10 minutos**.
 
 ---
 
-## Slide 11: Figura 19-3 original (cerca de 50 s)
+## Slide 11: Figura 19-3 original e mapa das regras (cerca de 1 min e 30 s)
 
 **Objetivo:** mostrar que o material vem diretamente do livro e dar o mapa da parte.
 
@@ -34,7 +34,7 @@ Tempo-alvo: **8 a 10 minutos**.
 
 ---
 
-## Slide 12: três regras de computação (cerca de 2 min)
+## Slide 11 (continuação): três regras de computação
 
 ### Como ler uma regra de inferência
 
@@ -81,7 +81,7 @@ Pontos importantes:
 
 ---
 
-## Slide 13: cinco regras de congruência (cerca de 1 min)
+## Slide 12: cinco regras de congruência (cerca de 1 min)
 
 > "As três regras anteriores só se aplicam quando o receptor e os argumentos já são valores. Para chegar nesse formato, precisamos das regras de congruência. Elas propagam um passo de redução para dentro de uma expressão maior."
 
@@ -103,7 +103,7 @@ Leia os grupos, não cada símbolo:
 
 ---
 
-## Slide 14: cast passo a passo (cerca de 1 min e 30 s)
+## Slide 13: cast passo a passo (cerca de 1 min e 30 s)
 
 Avance uma etapa por vez com a seta. Sempre aponte o sublinhado vermelho.
 
@@ -129,7 +129,7 @@ Avance uma etapa por vez com a seta. Sempre aponte o sublinhado vermelho.
 
 ---
 
-## Slide 15: por que o cast é necessário (cerca de 1 min)
+## Slide 14: por que o cast é necessário (cerca de 1 min)
 
 > "O cast não está ali por causa da avaliação. Em tempo de execução, a gente sabe que `fst` contém um Pair. O problema é o tipo estático."
 >
@@ -143,7 +143,7 @@ Conexão útil:
 
 ---
 
-## Slide 16: chamada de método passo a passo (cerca de 1 min e 30 s)
+## Slide 15: chamada de método passo a passo (cerca de 1 min e 30 s)
 
 ### Estado inicial
 
@@ -173,7 +173,7 @@ new Pair(new B(), new Pair(new A(),new B()).snd)
 
 ---
 
-## Slide 17: três formas de travar (cerca de 50 s)
+## Slide 16: três formas de travar (cerca de 50 s)
 
 > "Como FJ não tem exceções, erro de execução significa ficar sem regra aplicável. Há três possibilidades: campo inexistente, método inexistente e cast inválido."
 >
@@ -203,7 +203,7 @@ Você deve conseguir explicar sem ler:
 ## Treino rápido
 
 1. Abra a apresentação no slide 11: `index.html#11`.
-2. Grave só sua parte (slides 11 a 17), sem parar.
+2. Grave só sua parte (slides 11 a 16), sem parar.
 3. Meta: 8 a 10 minutos.
 4. Ouça e confira se você explicou **o porquê** de cada regra, não só leu a fórmula.
 5. Faça as perguntas da seção "Avaliação" em [03-perguntas-e-respostas.md](03-perguntas-e-respostas.md) sem consultar a resposta.

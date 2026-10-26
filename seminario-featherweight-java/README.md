@@ -17,7 +17,7 @@ Seminário sobre o capítulo 19 de *Types and Programming Languages* (Pierce, 20
 
 | Pasta | O que tem |
 |---|---|
-| [`apresentacao/`](apresentacao/) | 27 slides em HTML, com recortes citados das Figuras 19-1 a 19-4. Setas navegam, F liga tela cheia. |
+| [`apresentacao/`](apresentacao/) | 23 slides em HTML, com recortes citados das Figuras 19-1 a 19-4. Setas navegam, F liga tela cheia. |
 | [`guias/`](guias/) | Guia geral, reduções, perguntas, divisão, roteiro da Pessoa 2, plano de leitura e referências |
 | [`livro/`](livro/) | Capítulo 19 do TAPL em PDF, fornecido para uso na disciplina |
 | [`exemplos/`](exemplos/) | Os termos dos slides em Java, prontos para compilar e rodar |

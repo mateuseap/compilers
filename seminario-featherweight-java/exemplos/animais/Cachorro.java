@@ -1,9 +1,7 @@
 // Classe da hierarquia usada nos exemplos intuitivos do seminario.
-// Segue o subconjunto Featherweight Java do capitulo 19. toString NAO faz parte de FJ.
-
+// Segue Featherweight Java; toString serve apenas para observar o resultado na JVM.
 class Cachorro extends Mamifero {
-    Animal amigo;
-    Cachorro(Animal amigo) { super(); this.amigo = amigo; }
+    Cachorro() { super(); }
     Som falar() { return new Latido(); }
-    public String toString() { return "new Cachorro(" + amigo + ")"; }
+    public String toString() { return "new Cachorro()"; }
 }

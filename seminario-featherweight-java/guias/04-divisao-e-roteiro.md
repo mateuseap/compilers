@@ -36,12 +36,12 @@ Guia completo: [08-guia-pessoa-1-fundamentos.md](08-guia-pessoa-1-fundamentos.md
 | Slide | Ideia central |
 |---|---|
 | 11 | Figura 19-3 original: computação versus congruência. |
-| 12 | E-ProjNew, E-InvkNew e E-CastNew, com animais. |
-| 13 | Call-by-value: congruência leva até o próximo redex. |
-| 14 | Exemplo formal Pair com cast, passo a passo. |
-| 15 | Tipo estático Animal versus classe real Gato; por que cast é necessário. |
+| 12 | E-ProjNew isolada: o campo `snd` recupera o segundo argumento. |
+| 13 | Cast válido isolado: E-CastNew não muda o objeto. |
+| 14 | Call-by-value: E-New-Arg permite reduzir dentro do construtor. |
+| 15 | Exemplo formal Pair: tipo estático Object, classe real Pair e necessidade do cast. |
 | 16 | `setfst`: `mbody` e substituição de parâmetro e `this`. |
-| 17 | Despacho dinâmico e recursão aberta com `Cachorro.apresentar`. |
+| 17 | Despacho dinâmico isolado: `new Cachorro().falar()`. |
 | 18 | Três formas de stuck e o papel posterior da tipagem. |
 
 **Ponte:** "A avaliação mostrou onde pode faltar regra. Agora veremos como o sistema de tipos elimina campo e método inexistentes e isola a falha de cast."

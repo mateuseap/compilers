@@ -29,7 +29,7 @@ ANIMAIS_CT = {
     "Animal": ("Object", [], {"falar": ("Som", [], "new Som()"),
                               "apresentar": ("Som", [], "this.falar()")}),
     "Mamifero": ("Animal", [], {}),
-    "Cachorro": ("Mamifero", [("Animal", "amigo")], {"falar": ("Som", [], "new Latido()")}),
+    "Cachorro": ("Mamifero", [], {"falar": ("Som", [], "new Latido()")}),
     "Gato": ("Mamifero", [], {"falar": ("Som", [], "new Miado()"),
                                 "miar": ("Som", [], "new Miado()")}),
 }
@@ -347,99 +347,62 @@ def self_check():
     pair, bichos = FJ(PAIR_CT), FJ(ANIMAIS_CT)
     pair.check_classes(); bichos.check_classes()
 
-    # override inválido em FJ: retorno precisa ser idêntico (Java 5+ aceitaria retorno covariante)
-    ruim = dict(ANIMAIS_CT, Cachorro=("Mamifero", [("Animal", "amigo")], {"falar": ("Latido", [], "new Latido()")}))
+    # Override em FJ exige assinatura idêntica, mesmo que Java aceite retorno covariante.
+    ruim = dict(ANIMAIS_CT, Cachorro=("Mamifero", [], {"falar": ("Latido", [], "new Latido()")}))
     try:
-        FJ(ruim).check_classes()
-        raise AssertionError("override covariante deveria ser rejeitado")
+        FJ(ruim).check_classes(); raise AssertionError("override covariante deveria ser rejeitado")
     except AssertionError as e:
         assert "override inválido" in str(e)
 
-    # Pessoa 1: subtipagem e consultas
-    assert bichos.sub("Cachorro", "Cachorro") and bichos.sub("Cachorro", "Mamifero") and bichos.sub("Cachorro", "Animal")
-    assert bichos.sub("Cachorro", "Object") and not bichos.sub("Gato", "Cachorro") and not bichos.sub("Cachorro", "Gato")
-    assert not bichos.sub("Animal", "Mamifero")
-    assert bichos.fields("Gato") == [] and bichos.fields("Cachorro") == [("Animal", "amigo")]
-    assert bichos.mtype("falar", "Mamifero") == ([], "Som")
-    assert bichos.mbody("falar", "Mamifero")[1] == parse("new Som()")
+    # Pessoa 1: subtipagem e consultas.
+    assert bichos.sub("Cachorro", "Cachorro") and bichos.sub("Cachorro", "Mamifero")
+    assert bichos.sub("Cachorro", "Animal") and bichos.sub("Cachorro", "Object")
+    assert not bichos.sub("Gato", "Cachorro") and not bichos.sub("Cachorro", "Gato")
+    assert bichos.fields("Cachorro") == []
+    assert bichos.mtype("falar", "Cachorro") == ([], "Som")
     assert bichos.mbody("falar", "Cachorro")[1] == parse("new Latido()")
-    path = []
-    assert bichos.mbody("apresentar", "Cachorro", path)[1] == parse("this.falar()")
+    path=[]; assert bichos.mbody("apresentar", "Cachorro", path)[1] == parse("this.falar()")
     assert path == ["Cachorro", "Mamifero", "Animal"]
     assert pair.fields("Pair") == [("Object", "fst"), ("Object", "snd")]
 
-    # Pessoa 2: regras de computação com animais
-    expect_trace(bichos, "new Cachorro(new Gato()).amigo", [("new Gato()", ["E-ProjNew"])])
-    expect_trace(bichos, "new Gato().falar()", [("new Miado()", ["E-InvkNew"])])
-    expect_trace(bichos, "(Animal) new Gato()", [("new Gato()", ["E-CastNew"])])
-    # chamada por valor: o argumento vira valor antes do E-ProjNew
-    expect_trace(bichos, "new Cachorro((Animal) new Gato()).amigo", [
-        ("new Cachorro(new Gato()).amigo", ["E-Field", "E-New-Arg", "E-CastNew"]),
-        ("new Gato()", ["E-ProjNew"])])
-    # exemplo do livro com cast (§19.2)
+    # Pessoa 2: exemplos curtos e progressivos dos slides.
+    expect_trace(pair, "new Pair(new A(), new B()).snd", [("new B()", ["E-ProjNew"])])
+    expect_trace(bichos, "(Animal) new Cachorro()", [("new Cachorro()", ["E-CastNew"])])
+    expect_trace(pair, "new Pair(new Pair(new A(), new B()).fst, new B())", [
+        ("new Pair(new A(), new B())", ["E-New-Arg", "E-ProjNew"])])
+    expect_type(pair, "new Pair(new Pair(new A(), new B()), new A()).fst", "Object", "T-Field")
+    expect_ill_typed(pair, "new Pair(new Pair(new A(), new B()), new A()).fst.snd")
     expect_trace(pair, "((Pair) new Pair(new Pair(new A(), new B()), new A()).fst).snd", [
         ("((Pair) new Pair(new A(), new B())).snd", ["E-Field", "E-Cast", "E-ProjNew"]),
         ("new Pair(new A(), new B()).snd", ["E-Field", "E-CastNew"]),
         ("new B()", ["E-ProjNew"])])
-    expect_ill_typed(pair, "new Pair(new Pair(new A(), new B()), new A()).fst.snd")
-    expect_type(pair, "new Pair(new Pair(new A(), new B()), new A()).fst", "Object", "T-Field")
-    # setfst por substituição
     expect_trace(pair, "new Pair(new A(), new B()).setfst(new B())", [
         ("new Pair(new B(), new Pair(new A(), new B()).snd)", ["E-InvkNew"]),
         ("new Pair(new B(), new B())", ["E-New-Arg", "E-ProjNew"])])
-    # despacho dinâmico e recursão aberta
-    expect_trace(bichos, "new Cachorro(new Gato()).apresentar()", [
-        ("new Cachorro(new Gato()).falar()", ["E-InvkNew"]),
-        ("new Latido()", ["E-InvkNew"])])
-    expect_trace(bichos, "new Cachorro(new Gato()).amigo.falar()", [
-        ("new Gato().falar()", ["E-Invk-Recv", "E-ProjNew"]),
-        ("new Miado()", ["E-InvkNew"])])
-    expect_trace(bichos, "new Mamifero().falar()", [("new Som()", ["E-InvkNew"])])
-    # casts em execução
-    expect_trace(bichos, "(Gato) new Cachorro(new Gato()).amigo", [
-        ("(Gato) new Gato()", ["E-Cast", "E-ProjNew"]),
-        ("new Gato()", ["E-CastNew"])])
-    expect_trace(bichos, "(Cachorro) new Cachorro(new Gato()).amigo", [
-        ("(Cachorro) new Gato()", ["E-Cast", "E-ProjNew"])], stuck_at="(Cachorro) new Gato()")
-    expect_trace(bichos, "(Cachorro) (Animal) new Gato()", [
-        ("(Cachorro) new Gato()", ["E-Cast", "E-CastNew"])], stuck_at="(Cachorro) new Gato()")
-    expect_trace(pair, "(A) (Object) new B()", [("(A) new B()", ["E-Cast", "E-CastNew"])], stuck_at="(A) new B()")
-    # os três jeitos de travar
-    for ct, t in [(bichos, "new Gato().amigo"), (bichos, "new Som().falar()"), (bichos, "(Cachorro) new Gato()"),
-                  (pair, "new A().fst"), (pair, "new A().setfst(new B())"), (pair, "(A) new B()")]:
-        expect_trace(ct, t, [], stuck_at=t)
-    expect_ill_typed(bichos, "new Gato().amigo")
-    expect_ill_typed(bichos, "new Som().falar()")
+    expect_trace(bichos, "new Cachorro().falar()", [("new Latido()", ["E-InvkNew"])])
+    expect_trace(bichos, "new Cachorro().apresentar()", [
+        ("new Cachorro().falar()", ["E-InvkNew"]), ("new Latido()", ["E-InvkNew"])])
 
-    # Pessoa 3: tipagem
-    expect_type(bichos, "new Gato()", "Gato", "T-New")
-    expect_type(bichos, "new Cachorro(new Gato())", "Cachorro", "T-New")
-    expect_type(bichos, "new Cachorro(new Gato()).amigo", "Animal", "T-Field")
-    expect_type(bichos, "new Cachorro(new Gato()).amigo.falar()", "Som", "T-Invk")
-    expect_ill_typed(bichos, "new Cachorro(new Gato()).amigo.miar()")
-    expect_type(bichos, "((Gato) new Cachorro(new Gato()).amigo).miar()", "Som", "T-Invk")
-    expect_trace(bichos, "((Gato) new Cachorro(new Gato()).amigo).miar()", [
-        ("((Gato) new Gato()).miar()", ["E-Invk-Recv", "E-Cast", "E-ProjNew"]),
-        ("new Gato().miar()", ["E-Invk-Recv", "E-CastNew"]),
-        ("new Miado()", ["E-InvkNew"])])
-    expect_type(bichos, "this.falar()", "Som", "T-Invk", env={"this": "Animal"})
-    expect_type(bichos, "this", "Animal", "T-Var", env={"this": "Animal"})
-    expect_type(bichos, "(Animal) new Gato()", "Animal", "T-UCast")
-    expect_type(bichos, "(Gato) new Cachorro(new Gato()).amigo", "Gato", "T-DCast")
-    expect_type(bichos, "(Cachorro) new Cachorro(new Gato()).amigo", "Cachorro", "T-DCast")
-    expect_type(bichos, "(Cachorro) (Animal) new Gato()", "Cachorro", "T-DCast")
-    expect_type(bichos, "(Cachorro) new Gato()", "Cachorro", "T-SCast")
-    expect_type(bichos, "(Object) new Gato()", "Object", "T-UCast")
-    expect_type(pair, "(A) (Object) new B()", "A", "T-DCast")
-    expect_type(pair, "(A) new B()", "A", "T-SCast")
-    expect_ill_typed(bichos, "new Cachorro(new Som())")
+    # Três formas de stuck.
+    for ct,t in [(pair,"new A().fst"),(pair,"new A().setfst(new B())"),(bichos,"(Gato) new Cachorro()")]:
+        expect_trace(ct,t,[],stuck_at=t)
+    expect_ill_typed(pair,"new A().fst"); expect_ill_typed(pair,"new A().setfst(new B())")
 
-    # exercício do guia 02
+    # Pessoa 3: tipagem e casts.
+    expect_type(bichos,"new Cachorro()","Cachorro","T-New")
+    expect_type(bichos,"new Cachorro().falar()","Som","T-Invk")
+    expect_type(bichos,"(Animal) new Cachorro()","Animal","T-UCast")
+    expect_type(bichos,"(Cachorro) (Animal) new Cachorro()","Cachorro","T-DCast")
+    expect_type(bichos,"(Gato) new Cachorro()","Gato","T-SCast")
+    expect_type(pair,"(A) (Object) new B()","A","T-DCast")
+    expect_type(pair,"(A) new B()","A","T-SCast")
+
+    # Exercício do guia 02.
     expect_trace(pair, "new Pair(new A(), new B()).setfst(new A()).setfst(new B()).fst", [
-        ("new Pair(new A(), new Pair(new A(), new B()).snd).setfst(new B()).fst", ["E-Field", "E-Invk-Recv", "E-InvkNew"]),
-        ("new Pair(new A(), new B()).setfst(new B()).fst", ["E-Field", "E-Invk-Recv", "E-New-Arg", "E-ProjNew"]),
-        ("new Pair(new B(), new Pair(new A(), new B()).snd).fst", ["E-Field", "E-InvkNew"]),
-        ("new Pair(new B(), new B()).fst", ["E-Field", "E-New-Arg", "E-ProjNew"]),
+        ("new Pair(new A(), new Pair(new A(), new B()).snd).setfst(new B()).fst", ["E-Field","E-Invk-Recv","E-InvkNew"]),
+        ("new Pair(new A(), new B()).setfst(new B()).fst", ["E-Field","E-Invk-Recv","E-New-Arg","E-ProjNew"]),
+        ("new Pair(new B(), new Pair(new A(), new B()).snd).fst", ["E-Field","E-InvkNew"]),
+        ("new Pair(new B(), new B()).fst", ["E-Field","E-New-Arg","E-ProjNew"]),
         ("new B()", ["E-ProjNew"])])
     print("todas as verificações passaram")
 

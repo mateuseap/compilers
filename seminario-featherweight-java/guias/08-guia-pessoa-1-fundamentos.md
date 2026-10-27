@@ -8,7 +8,7 @@ A hierarquia complementar usada neste guia é FJ válido:
 Object
 └── Animal
     └── Mamifero
-        ├── Cachorro   (campo Animal amigo; sobrescreve falar)
+        ├── Cachorro   (sobrescreve falar)
         └── Gato       (sobrescreve falar)
 
 Som
@@ -136,10 +136,9 @@ Estas funções ligam as definições às regras seguintes:
 Exemplo Animal:
 
 ```text
-fields(Cachorro)       = Animal amigo
+fields(Cachorro)       = •
 mtype(falar,Cachorro)  = [] → Som
 mbody(falar,Cachorro)  = ([], new Latido())
-mbody(apresentar,Cachorro) sobe Cachorro → Mamifero → Animal
 ```
 
 ### Transição para Pessoa 2

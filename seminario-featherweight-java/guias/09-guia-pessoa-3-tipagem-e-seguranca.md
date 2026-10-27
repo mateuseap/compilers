@@ -31,7 +31,7 @@ Animal: com `Γ = {this:Cachorro}`, temos `Γ ⊢ this : Cachorro`.
 3. O tipo de `fi` é `Ci`.
 
 ```text
-new Cachorro(new Gato()).amigo : Animal
+new Pair(new A(),new B()).snd : Object
 ```
 
 Mesmo guardando um Gato, o tipo estático do campo é Animal.
@@ -45,7 +45,7 @@ Mesmo guardando um Gato, o tipo estático do campo é Animal.
 5. Resultado tem tipo C.
 
 ```text
-new Gato().falar() : Som
+new Cachorro().falar() : Som
 ```
 
 ### T-New
@@ -53,7 +53,7 @@ new Gato().falar() : Som
 Os argumentos precisam corresponder a todos os campos de `fields(C)`, aceitando subtipos.
 
 ```text
-new Cachorro(new Gato()) : Cachorro
+new Cachorro() : Cachorro
 ```
 
 É válido porque o campo espera Animal e `Gato <: Animal`.

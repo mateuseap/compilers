@@ -60,5 +60,5 @@ java -cp /tmp/fj-animais MainAnimais
 
 ```bash
 python3 fj_trace.py
-python3 fj_trace.py "new Cachorro(new Gato()).apresentar()"
+python3 fj_trace.py "new Cachorro().falar()"
 ```

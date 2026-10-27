@@ -64,9 +64,8 @@ mbody = (newfst, new Pair(newfst,this.snd))
 ### Despacho dinâmico
 
 ```text
-new Cachorro(...).apresentar()
-→ new Cachorro(...).falar()     // apresentar herdado substitui this pelo receptor real
-→ new Latido()                  // mbody começa em Cachorro, acha override
+new Cachorro().falar()
+→ new Latido()                  // mbody começa em Cachorro e acha override
 ```
 
 ### 3 formas de stuck
@@ -95,12 +94,12 @@ Sem subsunção separada: testes `<:` ficam nas regras; cada termo tem tipo mín
 ### Tipo estático versus classe real
 
 ```text
-new Cachorro(new Gato()).amigo
+new Pair(new Pair(new A(),new B()),new A()).fst
 ```
 
-- tipo estático: Animal (declaração do campo);
-- classe real: Gato (valor armazenado);
-- `(Gato)...amigo` recupera precisão, mas checa em runtime.
+- tipo estático: Object (declaração de `fst`);
+- classe real: Pair (valor armazenado);
+- `(Pair)...fst` recupera precisão, mas checa em runtime.
 
 ### Casts
 

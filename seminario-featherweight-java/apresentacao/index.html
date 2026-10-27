@@ -355,6 +355,26 @@ pre.code.ctx { line-height: 2; }
 .cast-animal-bridge code { padding:6px 8px;background:#fff;border-radius:var(--r-1); }.cast-animal-bridge span{color:var(--ink-2)}
 .safety-memory { display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-8);margin-top:18px; }
 .safety-memory span { border-top:4px solid var(--cin-red);padding:10px 14px;background:var(--paper-2);font-size:17px;line-height:1.35; }
+
+/* ---------- aulas de um conceito por slide ---------- */
+.simple-stage { display:flex; align-items:center; justify-content:center; gap:34px; min-height:0; }
+.simple-expression { font:30px/1.4 var(--font-mono); padding:20px 25px; background:var(--code-bg); border:1px solid var(--line); border-radius:var(--r-2); }
+.simple-arrow { font-size:46px; color:var(--cin-red); }
+.simple-rule { display:flex; justify-content:center; align-items:center; gap:24px; padding:14px 20px; background:var(--paper-2); border-radius:var(--r-2); font:18px var(--font-mono); }
+.simple-rule span { padding-right:24px; border-right:2px solid var(--cin-red); }.simple-rule b{font:700 19px var(--font-sans)}
+.simple-conclusion { margin-top:16px; padding:12px 18px; border-left:6px solid var(--cin-red); background:var(--red-tint); font-size:20px; }
+.cast-mark { color:#1F5FA8; font-weight:700; }
+.simple-trace { display:grid; grid-template-columns:minmax(0,1fr) 270px 60px minmax(0,.62fr); align-items:center; gap:20px; }
+.simple-rule-stack { display:grid; grid-template-columns:auto 1fr; gap:7px 10px; align-items:center; font-size:16px; }
+.simple-rule-stack span { color:var(--cin-red-dark);font-weight:800}.simple-rule-stack b{font-weight:400}.simple-rule-stack i{grid-column:1/-1;text-align:center;color:var(--ink-3)}
+.static-pair { display:grid; grid-template-columns:1.2fr 1fr 1fr; gap:22px; align-items:stretch; }
+.pair-object,.type-view,.cast-view { border:1px solid var(--line);border-radius:var(--r-2);padding:22px;display:flex;flex-direction:column;justify-content:center; }
+.pair-object code { font-size:18px;line-height:1.6 }.stored{background:rgba(47,122,62,.14);padding:2px 3px;border-radius:3px}.runtime-badge{display:inline-block;align-self:flex-start;margin-top:20px;padding:7px 11px;border-radius:20px;background:#EAF5ED;color:#1D632F;font:16px var(--font-mono)}
+.type-view{border-top:6px solid #1F5FA8}.cast-view{border-top:6px solid var(--cin-red)}.type-view strong,.cast-view strong{font-size:20px}.type-view>code,.cast-view>code{font-size:18px;margin:20px 0;padding:12px;background:var(--code-bg);border-radius:var(--r-1)}.type-view p,.cast-view p{font-size:18px;line-height:1.4}
+.dispatch-simple { display:grid; grid-template-columns:1.1fr .9fr; grid-template-rows:1fr auto; gap:24px; align-items:center; }
+.class-decls { grid-row:1/3;display:flex;flex-direction:column;gap:16px }.hot-code{border-color:var(--cin-red)!important;box-shadow:inset 5px 0 0 var(--cin-red)}
+.dispatch-expression{display:flex;align-items:center;justify-content:center;gap:18px;font-size:23px}.dispatch-expression code{padding:16px;background:var(--code-bg);border-radius:var(--r-1)}.dispatch-expression b{font-size:34px;color:var(--cin-red)}
+.dispatch-search{display:flex;align-items:center;gap:15px;padding:13px;background:var(--red-tint);border-radius:var(--r-1);font-size:16px}.dispatch-search b{font-weight:500}
 </style>
 </head>
 <body>
@@ -567,7 +587,7 @@ pre.code.ctx { line-height: 2; }
     </tbody>
   </table>
   <p class="small" style="margin-top:var(--sp-4)">Exemplo: <span class="mono">fields(Pair) = Object fst, Object snd</span> e <span class="mono">mbody(setfst, Pair) = (newfst, new Pair(newfst, this.snd))</span>.</p>
-  <div class="aux-animal"><strong>Camada intuitiva:</strong> <code>fields(Cachorro) = Animal amigo</code> · <code>mtype(falar,Cachorro) = [] → Som</code> · <code>mbody(falar,Cachorro) = ([], new Latido())</code></div>
+  <div class="aux-animal"><strong>Camada intuitiva:</strong> <code>fields(Cachorro) = •</code> · <code>mtype(falar,Cachorro) = [] → Som</code> · <code>mbody(falar,Cachorro) = ([], new Latido())</code></div>
 </section>
 
 <!-- 11. Visão geral da avaliação -->
@@ -579,183 +599,101 @@ pre.code.ctx { line-height: 2; }
       <figcaption>Pierce, <em>Types and Programming Languages</em>, cap. 19, Figura 19-3, p. 258.</figcaption>
     </figure>
     <div class="stack">
-      <div class="rule-family compute">
-        <span class="family-count">3</span>
-        <div><strong>Regras de computação</strong><p>Fazem o passo real: selecionam campo, executam método ou removem cast.</p></div>
-      </div>
-      <div class="rule-family context">
-        <span class="family-count">5</span>
-        <div><strong>Regras de congruência</strong><p>Não calculam o resultado: levam a avaliação até o próximo subtermo.</p></div>
-      </div>
-      <div class="callout"><span class="mono">t ⟶ t'</span> lê-se: “o termo <em>t</em> reduz para <em>t'</em> em um passo”.</div>
+      <div class="rule-family compute"><span class="family-count">3</span><div><strong>Computação</strong><p>Faz o passo real: campo, método ou cast.</p></div></div>
+      <div class="rule-family context"><span class="family-count">5</span><div><strong>Congruência</strong><p>Leva a avaliação até o próximo subtermo.</p></div></div>
+      <div class="callout"><code>t ⟶ t'</code>: “t reduz para t' em um passo”.</div>
     </div>
   </div>
 </section>
 
-<!-- 12. Três regras de computação -->
-<section class="slide" data-title="Regras de computação" data-steps="3">
-  <div class="head" style="margin-bottom:var(--sp-3)"><div class="kicker">Figura 19-3</div><h2>Campo, método e cast: só três regras calculam</h2></div>
-  <div class="compute-rows grow">
-    <article class="compute-row" data-focus="1">
-      <div class="compute-name"><b>E-ProjNew</b><span>acesso a campo</span></div>
-      <div class="row-rule"><small>fields(C) = <span class="ov">C f</span></small><strong>(new C(<span class="ov">v</span>)).f<sub>i</sub> ⟶ v<sub>i</sub></strong></div>
-      <div class="row-example"><code><span class="receiver">new Cachorro(<span class="argument">new Gato()</span>)</span>.amigo</code><b>⟶</b><code class="result">new Gato()</code></div>
-      <p>O i-ésimo campo devolve o i-ésimo argumento.</p>
-    </article>
-    <article class="compute-row" data-focus="2">
-      <div class="compute-name"><b>E-InvkNew</b><span>chamada de método</span></div>
-      <div class="row-rule compact"><small>mbody(m,C) = (<span class="ov">x</span>,t<sub>0</sub>)</small><strong>(new C(<span class="ov">v</span>)).m(<span class="ov">u</span>) ⟶ [<span class="ov">x</span>↦<span class="ov">u</span>, this↦new C(<span class="ov">v</span>)]t<sub>0</sub></strong></div>
-      <div class="row-example"><code><span class="receiver">new Gato()</span>.falar()</code><b>⟶</b><code class="result">new Miado()</code></div>
-      <p>Busca o corpo e substitui argumentos e <code>this</code>.</p>
-    </article>
-    <article class="compute-row" data-focus="3">
-      <div class="compute-name"><b>E-CastNew</b><span>cast válido</span></div>
-      <div class="row-rule"><small>C &lt;: D</small><strong>(D)(new C(<span class="ov">v</span>)) ⟶ new C(<span class="ov">v</span>)</strong></div>
-      <div class="row-example"><code>(Animal) <span class="receiver">new Gato()</span></code><b>⟶</b><code class="result">new Gato()</code></div>
-      <p>Confere a classe real e elimina o cast.</p>
-    </article>
+<!-- 12. E-ProjNew -->
+<section class="slide simple-lesson" data-title="Acesso a campo" data-steps="2">
+  <div class="head"><div class="kicker">E-ProjNew</div><h1>Como buscar um campo de um objeto?</h1></div>
+  <div class="simple-stage grow">
+    <div class="simple-expression" data-at="0"><span class="receiver">new Pair(new A(), <span class="argument">new B()</span>)</span>.<span class="redex">snd</span></div>
+    <div class="simple-arrow" data-at="1">⟶</div>
+    <div class="simple-expression result" data-at="1">new B()</div>
   </div>
-  <div class="legend"><span class="receiver-dot"></span> receptor/objeto <span class="argument-dot"></span> argumento <span class="result-dot"></span> resultado</div>
+  <div class="simple-rule" data-at="2"><span>fields(Pair) = Object fst, Object snd</span><b>snd é o 2º campo ⟹ recupera o 2º argumento</b></div>
+  <p class="simple-conclusion" data-at="2"><strong>Conclusão:</strong> o formato padronizado do construtor permite projetar por posição.</p>
 </section>
 
-<!-- 13. Call-by-value -->
-<section class="slide" data-title="Chamada por valor" data-steps="3">
-  <div class="head" style="margin-bottom:var(--sp-4)"><div class="kicker">Regras de congruência</div><h2>Call-by-value: chegar ao redex antes de calcular</h2></div>
-  <div class="tracer" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)">
-    <div class="pane">
-      <div class="pane-title">Termo <span class="mono">o sublinhado é o próximo redex</span></div>
-      <div class="ast animal-trace">
-<span class="ln shown" data-at="0">  new Cachorro(<span class="redex">(Animal) new Gato()</span>).amigo.falar()</span><span class="ln" data-at="1">⟶ <span class="redex">new Cachorro(new Gato()).amigo</span>.falar()</span><span class="ln" data-at="2">⟶ <span class="redex">new Gato().falar()</span></span><span class="ln" data-at="3">⟶ <span class="result">new Miado()</span></span>
-      </div>
-      <div class="cbv-order">
-        <span class="on">1 receptor</span><i>depois</i><span>2 argumentos, da esquerda para a direita</span><i>depois</i><span>3 regra de computação</span>
-      </div>
-    </div>
-    <div class="pane">
-      <div class="pane-title">Caminho até a regra</div>
-      <div class="callstack">
-        <div class="only" data-only="0"><span class="frame top">termo completo</span><div class="note">Antes de acessar <code>amigo</code> e chamar <code>falar</code>, o argumento do construtor precisa virar valor.</div></div>
-        <div class="only" data-only="1"><span class="frame">E-Invk-Recv</span><span class="frame" style="--d:1">E-Field</span><span class="frame" style="--d:2">E-New-Arg</span><span class="frame top" style="--d:3">E-CastNew</span><div class="note">As regras de congruência preservam o contexto e levam o passo até o cast.</div></div>
-        <div class="only" data-only="2"><span class="frame">E-Invk-Recv</span><span class="frame top" style="--d:1">E-ProjNew</span><div class="note"><code>amigo</code> é o único campo de Cachorro, então sai <code>new Gato()</code>.</div></div>
-        <div class="only" data-only="3"><span class="frame top">E-InvkNew</span><div class="note"><code>mbody(falar,Gato)</code> encontra o corpo sobrescrito: <code>new Miado()</code>.</div></div>
-      </div>
-    </div>
+<!-- 13. E-CastNew -->
+<section class="slide simple-lesson" data-title="Cast válido" data-steps="2">
+  <div class="head"><div class="kicker">E-CastNew</div><h1>Um cast muda o objeto?</h1></div>
+  <div class="simple-stage grow">
+    <div class="simple-expression" data-at="0"><span class="cast-mark">(Animal)</span> <span class="receiver">new Cachorro()</span></div>
+    <div class="simple-arrow" data-at="1">⟶</div>
+    <div class="simple-expression result" data-at="1">new Cachorro()</div>
   </div>
-  <p class="small">Contexto inicial: <code>E = new Cachorro([]).amigo.falar()</code>. O buraco marca exatamente o próximo passo.</p>
+  <div class="simple-rule" data-at="2"><span>Cachorro &lt;: Animal</span><b>o teste passa e o cast desaparece</b></div>
+  <p class="simple-conclusion" data-at="2"><strong>Conclusão:</strong> o cast só verifica a hierarquia; não altera o objeto.</p>
 </section>
 
-<!-- 14. Pair com cast -->
-<section class="slide" data-title="Avaliação passo a passo" data-steps="3">
-  <div class="head" style="margin-bottom:var(--sp-4)"><div class="kicker">Exemplo formal do livro</div><h2>Pair com cast: uma regra de cada vez</h2></div>
-  <div class="tracer" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)">
-    <div class="pane">
-      <div class="pane-title">Termo <span class="mono">o redex está sublinhado</span></div>
-      <div class="ast" style="font-size:20px;line-height:1.9">
-<span class="ln shown" data-at="0">  ((Pair) <span class="redex">new Pair(new Pair(new A(),new B()), new A()).fst</span>).snd</span><span class="ln" data-at="1">⟶ (<span class="redex">(Pair)new Pair(new A(),new B())</span>).snd</span><span class="ln" data-at="2">⟶ <span class="redex">new Pair(new A(),new B()).snd</span></span><span class="ln" data-at="3">⟶ <span class="result">new B()</span></span>
-      </div>
-    </div>
-    <div class="pane">
-      <div class="pane-title">Regra aplicada</div>
-      <div class="callstack">
-        <div class="only" data-only="0"><span class="frame top">encontre o redex</span><div class="note">O contexto é <code>((Pair)[]).snd</code>. Primeiro resolvemos o acesso <code>.fst</code> mais interno.</div></div>
-        <div class="only" data-only="1"><span class="frame">E-Field</span><span class="frame" style="--d:1">E-Cast</span><span class="frame top" style="--d:2">E-ProjNew</span><div class="note"><code>fst</code> é o primeiro campo de Pair: sai o primeiro argumento, outro Pair.</div></div>
-        <div class="only" data-only="2"><span class="frame">E-Field</span><span class="frame top" style="--d:1">E-CastNew</span><div class="note"><code>Pair &lt;: Pair</code> pela reflexividade. O cast passa e desaparece.</div></div>
-        <div class="only" data-only="3"><span class="frame top">E-ProjNew</span><div class="note"><code>snd</code> é o segundo campo: sai <code>new B()</code>, um valor.</div></div>
-      </div>
-    </div>
+<!-- 14. E-New-Arg -->
+<section class="slide simple-lesson" data-title="Chamada por valor" data-steps="2">
+  <div class="head"><div class="kicker">E-New-Arg + E-ProjNew</div><h1>O construtor externo já é um valor?</h1></div>
+  <div class="simple-trace grow">
+    <div class="simple-expression" data-at="0">new Pair(<span class="redex">new Pair(new A(), new B()).fst</span>, new B())</div>
+    <div class="simple-rule-stack" data-at="1"><span>E-New-Arg</span><b>entra no 1º argumento</b><i>+</i><span>E-ProjNew</span><b><code>.fst</code> vira <code>new A()</code></b></div>
+    <div class="simple-arrow" data-at="2">⟶</div>
+    <div class="simple-expression result" data-at="2">new Pair(new A(), new B())</div>
   </div>
-  <div class="legend"><span class="redex-key"></span> próximo redex <span class="result-dot"></span> valor final</div>
+  <p class="simple-conclusion" data-at="2"><strong>Conclusão:</strong> call-by-value avalia os argumentos antes de considerar <code>new C(...)</code> um valor.</p>
 </section>
 
-<!-- 15. Tipo estático vs classe real -->
-<section class="slide" data-title="Por que o cast">
-  <div class="head"><div class="kicker">Tipo estático ≠ classe real</div><h1>O verificador sabe menos que o avaliador</h1></div>
-  <div class="static-runtime grow">
-    <div class="static-side">
-      <div class="side-label">Em tempo de compilação</div>
-      <pre class="code sm">new Cachorro(new Gato()).amigo</pre>
-      <div class="type-pill">tipo estático: Animal</div>
-      <p>O campo foi declarado <code>Animal amigo</code>. É só isso que T-Field pode concluir.</p>
-      <div class="mini-code bad">...amigo.miar() <b>✕</b></div>
-    </div>
-    <div class="knowledge-gap">
-      <span>informação perdida<br>pelo tipo estático</span>
-      <b>≠</b>
-    </div>
-    <div class="runtime-side">
-      <div class="side-label">Em tempo de execução</div>
-      <pre class="code sm">new Cachorro(<span class="result">new Gato()</span>).amigo</pre>
-      <div class="class-pill">classe real: Gato</div>
-      <p>E-ProjNew vê o valor concreto guardado no objeto: <code>new Gato()</code>.</p>
-      <div class="mini-code ok">((Gato) ...amigo).miar() <b>✓</b></div>
-    </div>
+<!-- 15. Tipo estático e cast do Pair -->
+<section class="slide" data-title="Por que o cast" data-steps="2">
+  <div class="head" style="margin-bottom:var(--sp-4)"><div class="kicker">Tipo estático ≠ classe real</div><h2>Por que o exemplo do livro precisa de cast?</h2></div>
+  <div class="static-pair grow">
+    <div class="pair-object"><code>new Pair(<span class="stored">new Pair(new A(),new B())</span>, new A()).fst</code><span class="runtime-badge">classe real: Pair</span></div>
+    <div class="type-view" data-at="1"><strong>O verificador enxerga:</strong><code>fst : Object</code><p><code>fields(Object)</code> é vazio; então <code>.snd</code> não tipa.</p></div>
+    <div class="cast-view" data-at="2"><strong>Recuperamos precisão:</strong><code>((Pair) ... .fst).snd</code><p>O cast torna o receptor tipável como Pair; em runtime ele confere a classe real.</p></div>
   </div>
-  <div class="cast-cost"><strong>O cast recupera precisão estática</strong>, mas cria uma checagem em runtime: passa se a classe real é subtipo do alvo; senão, fica stuck.</div>
-  <p class="small">Mesmo fenômeno no livro: <code>fst</code> tem tipo <code>Object</code>, embora guarde um <code>Pair</code>; o cast para Pair torna <code>.snd</code> tipável.</p>
+  <p class="simple-conclusion" data-at="2"><strong>Conclusão:</strong> o tipo estático vem da declaração do campo; a classe real vem do valor armazenado.</p>
 </section>
 
-<!-- 16. setfst por substituição -->
+<!-- 16. setfst -->
 <section class="slide" data-title="Chamada de método" data-steps="3">
   <div class="head" style="margin-bottom:var(--sp-4)"><div class="kicker">E-InvkNew</div><h2><code style="background:none;padding:0">setfst</code>: buscar o corpo e substituir</h2></div>
   <div class="tracer" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)">
-    <div class="pane">
-      <div class="pane-title">Termo</div>
-      <div class="ast" style="font-size:20px;line-height:1.9">
-<span class="ln shown" data-at="0">  <span class="receiver">new Pair(new A(), new B())</span>.setfst(<span class="argument">new B()</span>)</span><span class="ln" data-at="1">  mbody(setfst, Pair) = (newfst, new Pair(<span class="param">newfst</span>, <span class="this-var">this</span>.snd))</span><span class="ln" data-at="2">⟶ new Pair(<span class="argument">new B()</span>, <span class="redex"><span class="receiver">new Pair(new A(), new B())</span>.snd</span>)</span><span class="ln" data-at="3">⟶ <span class="result">new Pair(new B(), new B())</span></span>
-      </div>
-      <div class="substitution-map">
-        <span><i class="param-dot"></i><code>newfst</code></span><b>↦</b><span><i class="argument-dot"></i><code>new B()</code></span>
-        <span><i class="this-dot"></i><code>this</code></span><b>↦</b><span><i class="receiver-dot"></i>receptor</span>
-      </div>
-    </div>
-    <div class="pane">
-      <div class="pane-title">O que acontece</div>
-      <div class="callstack">
-        <div class="only" data-only="0"><span class="frame top">receptor e argumento já são valores</span><div class="note">Nenhuma congruência é necessária. Podemos aplicar E-InvkNew.</div></div>
-        <div class="only" data-only="1"><span class="frame top">mbody(setfst, Pair)</span><div class="note">A busca encontra em Pair o parâmetro <code>newfst</code> e o corpo exibido.</div></div>
-        <div class="only" data-only="2"><span class="frame top">substituição simultânea</span><div class="note"><code>newfst</code> recebe o argumento; <code>this</code> recebe o objeto receptor inteiro.</div></div>
-        <div class="only" data-only="3"><span class="frame">E-New-Arg</span><span class="frame top" style="--d:1">E-ProjNew</span><div class="note">O <code>.snd</code> restante vira <code>new B()</code>. O resultado é valor.</div></div>
-      </div>
-    </div>
+    <div class="pane"><div class="pane-title">Termo</div><div class="ast" style="font-size:20px;line-height:1.9">
+<span class="ln shown" data-at="0">  <span class="receiver">new Pair(new A(), new B())</span>.setfst(<span class="argument">new B()</span>)</span><span class="ln" data-at="1">  mbody = (newfst, new Pair(<span class="param">newfst</span>, <span class="this-var">this</span>.snd))</span><span class="ln" data-at="2">⟶ new Pair(<span class="argument">new B()</span>, <span class="redex"><span class="receiver">new Pair(new A(), new B())</span>.snd</span>)</span><span class="ln" data-at="3">⟶ <span class="result">new Pair(new B(), new B())</span></span>
+    </div><div class="substitution-map"><span><i class="param-dot"></i><code>newfst</code></span><b>↦</b><span><i class="argument-dot"></i><code>new B()</code></span><span><i class="this-dot"></i><code>this</code></span><b>↦</b><span><i class="receiver-dot"></i>receptor</span></div></div>
+    <div class="pane"><div class="pane-title">Uma ideia por passo</div><div class="callstack">
+      <div class="only" data-only="0"><span class="frame top">receptor e argumento são valores</span><div class="note">E-InvkNew já pode ser aplicada.</div></div>
+      <div class="only" data-only="1"><span class="frame top">mbody(setfst, Pair)</span><div class="note">Consulta devolve o parâmetro e o corpo.</div></div>
+      <div class="only" data-only="2"><span class="frame top">substituição simultânea</span><div class="note">Parâmetro recebe argumento; <code>this</code> recebe receptor.</div></div>
+      <div class="only" data-only="3"><span class="frame top">E-New-Arg + E-ProjNew</span><div class="note"><code>this.snd</code> vira <code>new B()</code>.</div></div>
+    </div></div>
   </div>
 </section>
 
-<!-- 17. mbody e despacho dinâmico -->
-<section class="slide" data-title="Despacho dinâmico" data-steps="4">
-  <div class="head" style="margin-bottom:var(--sp-4)"><div class="kicker">mbody + this</div><h2>O corpo herdado pode chamar o método sobrescrito</h2></div>
-  <div class="cols grow" style="grid-template-columns:minmax(0,.72fr) minmax(0,1.28fr);gap:var(--sp-4)">
-    <div class="dispatch-tree">
-      <div class="tree-node">Animal <small>apresentar → this.falar()<br>falar → new Som()</small></div>
-      <div class="tree-line"></div>
-      <div class="tree-node">Mamifero <small>herda os dois métodos</small></div>
-      <div class="tree-line split"></div>
-      <div class="tree-row"><div class="tree-node hot">Cachorro <small>falar → new Latido()</small></div><div class="tree-node">Gato <small>falar → new Miado()</small></div></div>
-      <div class="dispatch-note">Tipo de retorno idêntico: <code>Som</code><br>Exigência de <code>override</code> em FJ.</div>
-    </div>
-    <div class="pane">
-      <div class="pane-title">Redução de <code>new Cachorro(new Gato()).apresentar()</code></div>
-      <div class="ast animal-trace" style="font-size:19px">
-<span class="ln shown" data-at="0">  <span class="receiver">new Cachorro(new Gato())</span>.apresentar()</span><span class="ln" data-at="1">  mbody(apresentar, Cachorro)</span><span class="ln" data-at="1">  busca: Cachorro ⟶ Mamifero ⟶ <span class="hl">Animal</span></span><span class="ln" data-at="2">⟶ <span class="receiver">new Cachorro(new Gato())</span>.falar()</span><span class="ln" data-at="3">  mbody(falar, Cachorro) = ([], <span class="result">new Latido()</span>)</span><span class="ln" data-at="4">⟶ <span class="result">new Latido()</span></span>
-      </div>
-      <div class="only dispatch-explain" data-only="0">O receptor real é um <strong>Cachorro</strong>, mesmo que o método <code>apresentar</code> tenha sido escrito em Animal.</div>
-      <div class="only dispatch-explain" data-only="1"><code>mbody</code> sobe a hierarquia até achar o corpo de <code>apresentar</code>.</div>
-      <div class="only dispatch-explain" data-only="2">E-InvkNew substitui <code>this</code> pelo receptor real.</div>
-      <div class="only dispatch-explain" data-only="3">A nova chamada começa a busca novamente na classe do receptor: Cachorro.</div>
-      <div class="only dispatch-explain" data-only="4"><strong>Resultado:</strong> a sobrescrita de Cachorro vence. Isso é recursão aberta via <code>this</code>.</div>
-    </div>
+<!-- 17. Despacho dinâmico simples -->
+<section class="slide simple-lesson" data-title="Despacho dinâmico" data-steps="2">
+  <div class="head"><div class="kicker">mbody + sobrescrita</div><h1>Qual corpo de <code style="font-size:.8em;background:none;padding:0">falar()</code> executa?</h1></div>
+  <div class="dispatch-simple grow">
+    <div class="class-decls" data-at="0"><pre class="code sm"><span class="k">class</span> Animal <span class="k">extends</span> Object {
+  Som falar() { <span class="k">return new</span> Som(); }
+}</pre><pre class="code sm hot-code"><span class="k">class</span> Cachorro <span class="k">extends</span> Animal {
+  Som falar() { <span class="k">return new</span> Latido(); }
+}</pre></div>
+    <div class="dispatch-expression" data-at="1"><code><span class="receiver">new Cachorro()</span>.falar()</code><b>⟶</b><code class="result">new Latido()</code></div>
+    <div class="dispatch-search" data-at="2"><code>mbody(falar, Cachorro)</code><b>encontra primeiro o método de Cachorro</b></div>
   </div>
+  <p class="simple-conclusion" data-at="2"><strong>Conclusão:</strong> a classe real do receptor decide onde a busca começa; a sobrescrita de Cachorro vence.</p>
 </section>
 
 <!-- 18. Stuck -->
 <section class="slide" data-title="Quando trava" data-steps="2">
   <div class="head"><div class="kicker">Sem regra aplicável</div><h1>Três jeitos de ficar stuck</h1></div>
   <div class="prs stuck-grid">
-    <div class="pr" data-at="0"><div class="id">campo inexistente</div><h3><code>new Gato().amigo</code></h3><p class="small"><code>fields(Gato)</code> não contém <code>amigo</code>. E-ProjNew não se aplica.</p><div class="guard">T-Field rejeita antes de executar</div></div>
-    <div class="pr" data-at="0"><div class="id">método inexistente</div><h3><code>new Som().falar()</code></h3><p class="small"><code>mbody(falar,Som)</code> é indefinido. E-InvkNew não se aplica.</p><div class="guard">T-Invk rejeita antes de executar</div></div>
-    <div class="pr muted" data-at="1"><div class="id">cast preso (surge de um downcast)</div><h3><code>(Cachorro)(Animal)new Gato()</code></h3><p class="small">O cast externo é aceito estaticamente; após o upcast sumir, sobra <code>(Cachorro)new Gato()</code>.</p><div class="guard danger">Bem tipado pode travar aqui</div></div>
+    <div class="pr"><div class="id">campo inexistente</div><h3><code>new A().fst</code></h3><p class="small"><code>fields(A)</code> é vazio; E-ProjNew não se aplica.</p><div class="guard">T-Field rejeita antes</div></div>
+    <div class="pr"><div class="id">método inexistente</div><h3><code>new A().setfst(new B())</code></h3><p class="small"><code>mbody(setfst,A)</code> é indefinido; E-InvkNew não se aplica.</p><div class="guard">T-Invk rejeita antes</div></div>
+    <div class="pr muted" data-at="1"><div class="id">cast preso</div><h3><code>(Gato)new Cachorro()</code></h3><p class="small"><code>Cachorro &lt;: Gato</code> é falso; E-CastNew não se aplica.</p><div class="guard danger">T-SCast pode tipar; runtime trava</div></div>
   </div>
-  <div class="stuck-flow" data-at="2"><code>(Cachorro)(Animal)new Gato()</code><b>⟶ E-CastNew</b><code>(Cachorro)new Gato()</code><b>⟶</b><strong>stuck: Gato ≮: Cachorro</strong></div>
-  <p class="lead" style="margin-top:var(--sp-4)">Segurança de tipos elimina campo e método inexistentes. A exceção de progresso é um cast preso <code>(C)(new D(...))</code> com <code>D ≮: C</code>.</p>
+  <div class="stuck-flow" data-at="2"><span>regra de computação?</span><b>nenhuma casa</b><strong>termo stuck</strong></div>
+  <p class="lead" style="margin-top:var(--sp-4)">Tipagem elimina campo e método inexistentes. Um cast preso continua sendo a exceção de progresso.</p>
 </section>
 
 <!-- 19. Tipagem de termos -->

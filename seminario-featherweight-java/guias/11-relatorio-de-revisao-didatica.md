@@ -20,18 +20,18 @@ Nenhuma outra mudança foi aplicada diretamente à parte 1.
 
 ## Pessoa 2: reformulação principal
 
-| Slide | Mudança |
+| Slide | Mudança final |
 |---|---|
-| 11 | Figura 19-3 original + separação visual computação/congruência |
-| 12 | Três regras de computação em faixas, cada uma com fórmula e Animal/Cachorro |
-| 13 | Call-by-value progressivo com a pilha de regras de congruência |
-| 14 | Pair com cast preservado, regra por regra |
-| 15 | Comparação visual tipo estático Animal versus classe real Gato |
-| 16 | `setfst` com cores consistentes para receptor, argumento, parâmetro, `this` e resultado |
-| 17 | Novo exemplo de `mbody` + despacho dinâmico/recursão aberta com Cachorro |
-| 18 | Três casos de stuck ligados às regras de tipo que os previnem |
+| 11 | Figura 19-3 original + distinção computação/congruência |
+| 12 | E-ProjNew isolada: `new Pair(...).snd` |
+| 13 | E-CastNew isolada: `(Animal)new Cachorro()` |
+| 14 | Call-by-value isolado: E-New-Arg + E-ProjNew dentro do construtor |
+| 15 | Tipo estático Object versus classe real Pair; por que o cast é necessário |
+| 16 | `setfst` com busca em `mbody` e duas substituições |
+| 17 | Despacho dinâmico isolado: `new Cachorro().falar()` |
+| 18 | Três casos pequenos de stuck |
 
-Duração projetada: 8–10 minutos. O número total de slides passou de 23 para 25; dois slides foram adicionados exclusivamente à parte 2.
+Os exemplos complexos com campo, cast e chamada no mesmo termo foram removidos. Cada slide ensina primeiro um conceito. Duração projetada: 9 minutos.
 
 ## Pessoa 3: acréscimos realizados
 

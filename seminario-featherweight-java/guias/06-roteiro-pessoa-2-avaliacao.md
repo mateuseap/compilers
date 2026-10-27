@@ -1,209 +1,200 @@
-# Roteiro detalhado: Pessoa 2, avaliação (slides 11 a 16)
+# Roteiro oral: Pessoa 2, avaliação (slides 11 a 18)
 
-Sua parte começa quando a pessoa 1 já explicou:
+Tempo-alvo: **8–10 minutos**. Sua história tem 4 atos:
 
-- as 5 formas de termo;
-- `fields(C)`, `mtype(m,C)` e `mbody(m,C)`;
-- subtipagem `C <: D`.
+1. separar computação de congruência;
+2. mostrar call-by-value e Pair passo a passo;
+3. separar tipo estático de classe real;
+4. executar método/substituição/despacho e fechar com stuck.
 
-Você não precisa redefinir tudo. Faça uma lembrança de 15 segundos e entre na avaliação.
+A Pessoa 1 já explicou os termos, `<:`, `fields`, `mtype` e `mbody`. Faça só uma lembrança curta.
 
-Tempo-alvo: **8 a 10 minutos**.
+## Transição de entrada (10 s)
 
----
-
-## Transição de entrada
-
-> "A gente já definiu como um programa FJ é escrito, como a hierarquia de classes funciona e como consultar campos e métodos na tabela de classes. Agora eu vou mostrar como esses termos executam. A semântica é small-step: em vez de executar tudo de uma vez, cada regra descreve um único passo de redução."
+> "Já sabemos escrever os termos e consultar classes, campos e métodos. Agora vamos ver como esses termos executam. A semântica é small-step: cada regra descreve um único passo."
 
 ---
 
-## Slide 11: Figura 19-3 original e mapa das regras (cerca de 1 min e 30 s)
+## Slide 11: mapa da Figura 19-3 (50 s)
 
-**Objetivo:** mostrar que o material vem diretamente do livro e dar o mapa da parte.
-
-> "Esta é a Figura 19-3 original do capítulo, na página 258. Ela contém a semântica operacional inteira de FJ. O julgamento no topo, `t → t'`, significa que o termo `t` reduz para `t'` em um passo."
+> "Esta é a Figura 19-3 original, página 258. O julgamento `t → t'` diz que t reduz para t' em um passo. A figura tem duas famílias."
 >
-> "A figura tem dois grupos. À esquerda estão as três regras de computação: acesso a campo, chamada de método e cast. Essas regras fazem a transformação real. O resto são regras de congruência: elas só dizem em qual pedaço de uma expressão maior devemos aplicar uma redução primeiro."
+> "As três regras de computação fazem a transformação real: uma para campo, uma para método e uma para cast. As cinco regras de congruência só conduzem a avaliação até o próximo subtermo."
 >
-> "Nos próximos slides a gente amplia essas regras e aplica elas em exemplos concretos."
+> "A pergunta é: esta regra calcula o resultado ou apenas escolhe onde calcular? Essa diferença organiza toda a avaliação."
 
-**Se perguntarem por que o artigo usa `R-Field` mas o livro usa `E-ProjNew`:**
-
-> "O artigo original e o capítulo usam nomes diferentes, mas a regra é a mesma. Aqui estamos seguindo os nomes do capítulo: E-ProjNew, E-InvkNew e E-CastNew."
+Não leia todas as fórmulas no recorte; os próximos slides ampliam cada parte.
 
 ---
 
-## Slide 11 (continuação): três regras de computação
+## Slide 12: três regras de computação (1 min 20 s)
 
-### Como ler uma regra de inferência
+Avance um cartão por vez.
 
-Antes das três:
+### E-ProjNew
 
-> "Cada regra tem premissas em cima da barra e uma conclusão embaixo. Se as condições de cima forem verdadeiras, o passo de baixo pode acontecer."
+> "Se `fields(C)` lista os campos, acessar o campo i em `new C(v)` devolve o valor i. `new Cachorro(new Gato()).amigo` vira `new Gato()`. Isso funciona porque o construtor padronizado tem um argumento por campo, na mesma ordem."
 
-### E-ProjNew: acesso a campo
+### E-InvkNew
 
-Leia em voz alta:
+> "Se `mbody(m,C)` encontra parâmetros e corpo, a chamada substitui parâmetros pelos argumentos e `this` pelo receptor. `new Gato().falar()` encontra o corpo sobrescrito e vira `new Miado()`."
 
-> "Se `fields(C)` devolve a sequência de tipos e nomes dos campos de C, então acessar o campo de posição `i` em `new C(v)` devolve o valor da posição `i`."
+### E-CastNew
 
-Explique o motivo:
+> "Se a classe real C é subtipo do alvo D, o cast desaparece. `(Animal)new Gato()` vira o mesmo `new Gato()`: cast não muda objeto."
 
-> "Isso funciona porque FJ obriga o construtor a receber exatamente um argumento por campo, na mesma ordem dos campos herdados e depois dos próprios. O objeto não tem uma memória separada: os valores estão dentro do próprio termo `new`."
+Fecho:
 
-Exemplo rápido:
+> "São as únicas três regras que calculam. Para conseguir aplicá-las, os componentes envolvidos precisam estar em forma de valor."
+
+---
+
+## Slide 13: call-by-value e congruência (1 min 15 s)
+
+Termo:
 
 ```text
-fields(Pair) = Object fst, Object snd
-new Pair(new A(), new B()).snd → new B()
+new Cachorro((Animal)new Gato()).amigo.falar()
 ```
-
-### E-InvkNew: chamada de método
-
-Leia:
-
-> "Se `mbody(m,C)` devolve os parâmetros `x` e o corpo `t0`, então chamar `m` sobre um objeto novo substitui os parâmetros pelos argumentos e substitui `this` pelo próprio receptor."
-
-Pontos importantes:
-
-- `mbody` começa a busca na **classe do receptor**; por isso a sobrescrita funciona.
-- `this` vira o objeto real; por isso uma chamada `this.m()` pode escolher uma versão sobrescrita na subclasse.
-- É parecida com beta-redução: aplica um corpo substituindo valores nos parâmetros.
-
-### E-CastNew: cast
-
-> "Se o tipo real C do objeto é subtipo do alvo D, o cast passa e desaparece. Ele não altera o objeto. Se `C <: D` for falso, nenhuma regra se aplica e FJ trava. Em Java, isso seria uma `ClassCastException`."
-
-### Fechamento do slide
-
-> "Essas são as únicas três regras que realmente transformam um redex. Sem atribuição não há heap: toda a avaliação é reescrita do próprio termo."
-
----
-
-## Slide 12: cinco regras de congruência (cerca de 1 min)
-
-> "As três regras anteriores só se aplicam quando o receptor e os argumentos já são valores. Para chegar nesse formato, precisamos das regras de congruência. Elas propagam um passo de redução para dentro de uma expressão maior."
-
-Leia os grupos, não cada símbolo:
-
-- **E-Field:** primeiro avalia o objeto antes de acessar o campo.
-- **E-Invk-Recv:** primeiro avalia o receptor da chamada.
-- **E-Invk-Arg:** depois avalia os argumentos, da esquerda para a direita.
-- **E-New-Arg:** avalia os argumentos do construtor, também em ordem.
-- **E-Cast:** avalia o termo dentro do cast antes de testar o tipo.
-
-> "Juntas, essas regras definem uma estratégia chamada por valor: só fazemos projeção, invocação ou cast quando o objeto envolvido já está avaliado."
-
-### Contextos de avaliação
-
-> "A expressão `E` com um buraco `[]` é uma forma compacta de dizer a mesma coisa: ela marca o próximo subtermo a reduzir. Por exemplo, `((Pair)[]).snd` diz que primeiro reduzimos o que está dentro do cast, depois o cast, e por último o campo `snd`."
-
-**Detalhe importante:** o artigo original usa redução não determinística. O capítulo usa call-by-value para manter consistência com o resto do TAPL. Se perguntarem, diga isso.
-
----
-
-## Slide 13: cast passo a passo (cerca de 1 min e 30 s)
-
-Avance uma etapa por vez com a seta. Sempre aponte o sublinhado vermelho.
 
 ### Estado inicial
 
-> "O termo quer pegar `fst`, dizer que o resultado é um `Pair`, e então pegar `snd`. O sublinhado mostra o redex do passo atual."
+> "Queremos chamar `falar`, mas o receptor ainda contém um objeto cujo argumento é um cast. Call-by-value exige avaliar primeiro."
 
-### Passo 1: E-ProjNew dentro de contexto
+### Passo 1
 
-> "Primeiro o contexto é `((Pair)[]).snd`. Dentro dele temos `new Pair(...).fst`. Como `fst` é o primeiro campo, E-ProjNew devolve o primeiro argumento, que é outro `Pair`."
+> "E-Invk-Recv entra no receptor da chamada; E-Field entra no receptor do campo; E-New-Arg entra no argumento do construtor; só então E-CastNew remove o cast. As regras externas preservam o contexto."
 
-### Passo 2: E-CastNew
+### Passo 2
 
-> "Agora o redex é `(Pair)new Pair(...)`. Como `Pair <: Pair` pela reflexividade, E-CastNew elimina o cast."
+> "Agora E-ProjNew seleciona o campo `amigo`, sob o contexto E-Invk-Recv. Sai `new Gato().falar()`."
 
-### Passo 3: E-ProjNew
+### Passo 3
 
-> "Sobra `new Pair(new A(),new B()).snd`. `snd` é o segundo campo, então sai o segundo argumento: `new B()`. Esse é um valor e a avaliação termina."
+> "Receptor já é valor: E-InvkNew encontra o corpo em Gato e produz `new Miado()`."
 
-**Resumo:**
+Frase-chave:
 
-> "A regra de congruência escolhe o lugar; a regra de computação faz o passo."
+> "Congruência leva até o redex; computação faz o passo."
 
----
-
-## Slide 14: por que o cast é necessário (cerca de 1 min)
-
-> "O cast não está ali por causa da avaliação. Em tempo de execução, a gente sabe que `fst` contém um Pair. O problema é o tipo estático."
->
-> "O campo `fst` foi declarado como `Object`. Então, depois de acessar `fst`, o verificador de tipos só sabe que o resultado é um `Object`. E `fields(Object)` é vazio, logo `.snd` não tipa."
->
-> "O downcast `(Pair)` afirma que aquele `Object` deve ser tratado como `Pair`. Depois disso `.snd` tipa, mas surge uma checagem em tempo de execução. Se o valor não fosse realmente um Pair, a computação travaria."
-
-Conexão útil:
-
-> "Isso é exatamente o custo de baixar um tipo estático: ganhamos acesso aos membros mais específicos, mas aceitamos risco em execução."
+O contexto inicial é `new Cachorro([]).amigo.falar()`: `[]` marca o próximo redex.
 
 ---
 
-## Slide 15: chamada de método passo a passo (cerca de 1 min e 30 s)
+## Slide 14: Pair com cast (1 min 10 s)
 
-### Estado inicial
+Este é o exemplo formal do livro. Avance com a seta.
 
-> "Aqui tanto o receptor quanto o argumento já são valores, então podemos aplicar E-InvkNew direto."
+1. Contexto `((Pair)[]).snd`. E-ProjNew em `.fst` seleciona o primeiro argumento, outro Pair.
+2. E-CastNew remove `(Pair)` porque `Pair <: Pair` pela reflexividade.
+3. E-ProjNew em `.snd` seleciona o segundo argumento: `new B()`, um valor.
 
-### Busca do corpo
+> "Em cada passo, as regras de congruência apontam o lugar e uma das três regras de computação transforma o redex."
 
-> "A classe do receptor é Pair. `mbody(setfst,Pair)` devolve o parâmetro `newfst` e o corpo `new Pair(newfst,this.snd)`."
+---
 
-### Substituições
+## Slide 15: tipo estático versus classe real (1 min)
 
-> "Substituímos `newfst` pelo argumento `new B()`. Também substituímos `this` pelo próprio receptor `new Pair(new A(),new B())`. Esse segundo ponto é o que o livro chama de recursão aberta via `this`."
+> "O verificador e o avaliador têm informações diferentes. O campo `amigo` foi declarado Animal, então T-Field conclui tipo estático Animal. Mas o argumento concreto guardado é `new Gato()`: a classe real é Gato."
+>
+> "O cast `(Gato)` recupera precisão estática para acessar algo específico de Gato. Em runtime ele precisa conferir a classe real. Se a classe real for subtipo do alvo, passa; se não, fica stuck."
 
-Resultado intermediário:
+Conecte a Pair:
+
+> "No exemplo do livro, `fst` tem tipo estático Object, embora guarde um Pair. Sem cast, `.snd` não tipa."
+
+Distinção para decorar:
+
+- tipo estático: vem da derivação de tipos;
+- classe real: nome em `new C(v)`;
+- dispatch usa classe real;
+- type checker usa tipo estático.
+
+---
+
+## Slide 16: `setfst` por substituição (1 min 15 s)
+
+Cores: azul receptor, marrom argumento, vermelho parâmetro, roxo `this`, verde resultado.
+
+1. Receptor e argumento já são valores.
+2. `mbody(setfst,Pair)` dá parâmetro `newfst` e corpo `new Pair(newfst,this.snd)`.
+3. Substituição simultânea:
+   - `newfst ↦ new B()`;
+   - `this ↦ new Pair(new A(),new B())`.
+4. Sobra o campo `.snd`; E-New-Arg + E-ProjNew o reduzem.
+5. Resultado: `new Pair(new B(),new B())`.
+
+> "E-InvkNew é parecida com beta-redução, mas também substitui `this` e encontra o corpo pela classe do receptor."
+
+---
+
+## Slide 17: `mbody`, despacho dinâmico e recursão aberta (1 min 10 s)
+
+Termo:
 
 ```text
-new Pair(new B(), new Pair(new A(),new B()).snd)
+new Cachorro(new Gato()).apresentar()
 ```
 
-### Último passo
+1. `apresentar` não está em Cachorro nem Mamifero; `mbody` sobe até Animal.
+2. Corpo herdado: `this.falar()`.
+3. E-InvkNew substitui `this` pelo receptor **real**, Cachorro.
+4. Nova chamada: `new Cachorro(...).falar()`.
+5. `mbody(falar,Cachorro)` acha a sobrescrita antes de subir: `new Latido()`.
 
-> "O segundo argumento ainda contém um acesso a campo. E-New-Arg leva a avaliação para dentro desse argumento, E-ProjNew reduz `.snd` para `new B()`, e o resultado final é `new Pair(new B(),new B())`."
+> "O corpo herdado em Animal chama comportamento sobrescrito em Cachorro. Isso é recursão aberta via `this` e é a essência do despacho dinâmico."
 
-**Ligação com sobrescrita:**
-
-> "Como `mbody` começa na classe dinâmica do receptor, se uma subclasse sobrescrevesse o método chamado via `this`, seria a versão da subclasse que apareceria."
-
----
-
-## Slide 16: três formas de travar (cerca de 50 s)
-
-> "Como FJ não tem exceções, erro de execução significa ficar sem regra aplicável. Há três possibilidades: campo inexistente, método inexistente e cast inválido."
->
-> "O sistema de tipos, que a próxima pessoa vai explicar, elimina os dois primeiros. Se o programa é bem tipado, todo campo acessado existe e todo método chamado tem corpo com a quantidade certa de parâmetros."
->
-> "O cast inválido continua possível porque o downcast é aceito estaticamente. Por isso o teorema de progresso de FJ tem uma exceção: um programa bem tipado pode travar num downcast."
-
-### Ponte para pessoa 3
-
-> "Então a pergunta natural é: quais regras de tipo garantem que campo e método inexistentes nunca chegam à execução? É isso que a próxima parte responde."
+Restrição FJ: todas as versões de `falar` têm tipo `[] → Som`; `override` exige assinatura idêntica.
 
 ---
 
-## Checklist antes de apresentar
+## Slide 18: três formas de stuck (55 s)
 
-Você deve conseguir explicar sem ler:
+1. `new Gato().amigo`: campo não existe; E-ProjNew não casa; T-Field rejeita.
+2. `new Som().falar()`: corpo não existe; E-InvkNew não casa; T-Invk rejeita.
+3. `(Cachorro)(Animal)new Gato()`:
+   - upcast interno desaparece;
+   - sobra `(Cachorro)new Gato()`;
+   - `Gato <: Cachorro` é falso; E-CastNew não casa;
+   - termo pode ser aceito como downcast antes da execução e travar.
 
-- [ ] diferença entre regra de computação e congruência;
-- [ ] por que E-ProjNew usa a posição do campo;
-- [ ] as duas substituições em E-InvkNew;
-- [ ] por que `mbody` começa na classe do receptor;
-- [ ] por que o cast do exemplo é necessário mesmo sabendo o valor real;
-- [ ] os três jeitos de travar;
-- [ ] por que não há heap;
-- [ ] a frase de transição para tipagem.
+### Transição para Pessoa 3
 
-## Treino rápido
+> "A tipagem elimina os dois primeiros travamentos. A exceção prevista pelo progresso é um cast preso `(C)(new D(...))` com `D ≮: C`; ele pode surgir de um downcast ou já ser tipado por T-SCast. Agora veremos as regras que sustentam essa garantia."
 
-1. Abra a apresentação no slide 11: `index.html#11`.
-2. Grave só sua parte (slides 11 a 16), sem parar.
-3. Meta: 8 a 10 minutos.
-4. Ouça e confira se você explicou **o porquê** de cada regra, não só leu a fórmula.
-5. Faça as perguntas da seção "Avaliação" em [03-perguntas-e-respostas.md](03-perguntas-e-respostas.md) sem consultar a resposta.
+---
+
+## Cronometragem
+
+| Slide | Tempo |
+|---|---:|
+| 11 | 0:50 |
+| 12 | 1:20 |
+| 13 | 1:15 |
+| 14 | 1:10 |
+| 15 | 1:00 |
+| 16 | 1:15 |
+| 17 | 1:10 |
+| 18 | 0:55 |
+| Transições/margem | 0:45 |
+| **Total** | **9:40** |
+
+## Checklist
+
+- [ ] Consigo dizer computação versus congruência sem olhar.
+- [ ] Sei a ordem call-by-value e consigo ler a pilha de regras.
+- [ ] Consigo reduzir Pair com cast de memória.
+- [ ] Sei separar tipo estático de classe real.
+- [ ] Sei as duas substituições de E-InvkNew.
+- [ ] Sei explicar por que `mbody` produz dispatch dinâmico.
+- [ ] Sei os três stuck e qual regra de tipo previne cada um.
+- [ ] Consigo fazer a ponte para tipagem.
+
+## Comandos de treino
+
+```bash
+cd seminario-featherweight-java/exemplos
+python3 fj_trace.py
+python3 fj_trace.py "new Cachorro(new Gato()).apresentar()"
+python3 fj_trace.py "(Cachorro) (Animal) new Gato()"
+```

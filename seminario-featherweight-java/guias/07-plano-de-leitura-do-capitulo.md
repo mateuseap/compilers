@@ -158,7 +158,7 @@ Explique por que:
 
 ## Passada 3: ensaio e perguntas (30 min)
 
-1. Apresente slides 11 a 17 em 8-10 minutos.
+1. Apresente slides 11 a 18 em 8-10 minutos.
 2. Responda sem consultar:
    - Qual a diferença entre computação e congruência?
    - Por que não há heap?
